@@ -1,0 +1,109 @@
+# bright_star_names.dat
+# -*- coding: utf-8 -*-
+#
+# The data in this file is used to make the various parts of a model astrolabe.
+#
+# Copyright (C) 2010-2018 Dominic Ford <dcf21-www@dcford.org.uk>
+#
+# This code is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+#
+# You should have received a copy of the GNU General Public License along with
+# this file; if not, write to the Free Software Foundation, Inc., 51 Franklin
+# Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+# ----------------------------------------------------------------------------
+
+# This file contains the names of the brightest stars in the Yale Bright Star Catalogue
+# HR_number  Name
+
+2491 Sirius
+2326 Canopus
+5459 Rigil Kentaurus
+5340 Arcturus
+7001 Vega
+1708 Capella
+1713 Rigel
+2943 Procyon
+0472 Achernar
+2061 Betelgeuse
+5267 Hadar
+7557 Altair
+4730 Acrux
+1457 Aldebaran
+6134 Antares
+5056 Spica
+2990 Pollux
+8728 Fomalhaut
+4853 Mimosa
+7924 Deneb
+3982 Regulus
+2618 Adhara
+2890 Castor
+4763 Gacrux
+6527 Shaula
+1790 Bellatrix
+1791 El Nath
+3685 Miaplacidus
+1903 Alnilam
+8425 Alnair
+1948 Alnitak
+4905 Alioth
+1017 Mirfak
+4301 Dubhe
+2693 Wezen
+6879 Kaus Australis
+3307 Avior
+5191 Alkaid
+6553 Sargas
+2088 Menkalinan
+4057 Algeiba
+6217 Atria
+2421 Alhena
+7790 Peacock
+2294 Mirzam
+3748 Alphard
+0617 Hamal
+0424 Polaris
+7121 Nunki
+0188 Deneb Kaitos
+0015 Alpheratz
+0337 Mirach
+2004 Saiph
+5288 Menkent
+5563 Kochab
+6556 Rasalhague
+0936 Algol
+4534 Denebola
+7796 Sadr
+3634 Alsuhail
+1852 Mintaka
+0168 Schedar
+5793 Alphecca
+6705 Eltanin
+3165 Naos
+3699 Tureis
+0603 Alamak
+0021 Caph
+5054 Mizar
+5953 Dschubba
+4295 Merak
+5505 Pulcherrima
+0099 Ankaa
+8308 Enif
+8775 Scheat
+6378 Sabik
+4554 Phecda
+8162 Alderamin
+2827 Aludra
+7949 Gienah
+0264 Cih
+8781 Markab
+0911 Menkar
+5984 Acrab
+4357 Zosma
+1865 Arneb
+7194 Ascella
+5685 Zubeneschamali

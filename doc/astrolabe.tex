@@ -1,0 +1,170 @@
+% astrolabe.tex
+%
+% The LaTeX code in this file brings together into a single document the
+% various components of the model astrolabe described by Dominic Ford's paper
+% in the Journal of the British Astronomical Association (2011).
+%
+% Copyright (C) 2010-2018 Dominic Ford <dcf21@mrao.cam.ac.uk>
+%
+% $Id$
+%
+% This code is free software; you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation; either version 2 of the License, or (at your option) any later
+% version.
+%
+% You should have received a copy of the GNU General Public License along with
+% this file; if not, write to the Free Software Foundation, Inc., 51 Franklin
+% Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+% ----------------------------------------------------------------------------
+
+\documentclass[a4paper,onecolumn,10pt]{article}
+\usepackage[dvips]{graphicx}
+\usepackage{fancyhdr,url}
+\usepackage{parskip}
+\usepackage[pdftitle={Building a Model Astrolabe}, pdfauthor={Dominic Ford}, pdfsubject={The Medieval Astrolabe}, pdfkeywords={The Medieval Astrolabe}, colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue]{hyperref}
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{fancy}
+
+\lhead{\it MAKE YOUR OWN MODEL ASTROLABE}
+\chead{}
+\rhead{\thepage}
+\lfoot{}\rfoot{}
+\cfoot{\bf\footnotesize\copyright\ 2010--2018 Dominic Ford. Distributed under the GNU General Public License, version 3. Document downloaded from \url{https://in-the-sky.org/astrolabe/index.html}}
+
+\fancypagestyle{plain}{%
+\fancyhf{} % clear all header and footer fields
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+\title{Make your own Model Astrolabe}
+\author{Dominic Ford}
+\date{2010--2018}
+
+\addtolength{\topmargin}{-.3in}
+\addtolength{\textheight}{.6in}
+
+\begin{document}
+\maketitle
+\setcounter{footnote}{1}
+
+An astrolabe is an elaborate instrument which combines a mechanical model of
+the sky's rotation through the night -- similar to a modern planisphere
+-- with an observing instrument which allows the altitudes of objects in
+the night sky to be measured. Put together, these two components can be used
+the time of day, by determining the altitude of a star, and also at what time
+of day the sky's rotation brings it to that height above the horizon.
+
+Historically, the astrolabe was the most sophisticated astronomical instrument
+in widespread use in the Middle Ages.  In fact, it held this position for
+nearly two thousand years, from the time of Hipparchus (c. 190--120 BCE)
+until the turn of the seventeenth century, around the time that the telescope
+was invented in 1609.
+
+Yet today this complex instrument is rarely seen outside of glass cases in
+museums, and those interested in learning about it may have some difficulty
+finding a specimen to play with. Ornately carved brass reproductions are
+available from some telescope dealers, but with substantial price tags
+attached. These price tags are historically authentic: medieval astrolabes
+were often made from high-cost materials and intricately decorated, becoming
+expensive items of beauty as well as practical observing instruments. But for
+the amateur astronomer who is looking for a toy with which to muse over past
+observing practice, a simpler alternative may be preferable.
+
+This document provides a cardboard cut-and-glue kit to make your own model
+astrolabe, so that you can rediscover medieval observing practice for yourself.
+The astrolabe presented here is design for use at a latitude of
+\input{tmp/lat}. Alternative versions, prepared for other latitudes, are
+available from the author's website:
+
+\centerline{\url{https://in-the-sky.org/astrolabe/}}
+
+\section*{Assembly Instructions}
+
+To build a model astrolabe tailored for a latitude of \input{tmp/lat},
+Figures~\ref{mother_back}, \ref{mother_front} and~\ref{rule} should be printed
+out onto paper, or more preferably onto thin card.  Figure~\ref{rete} should be
+printed onto a sheet of transparent acetate.  The two sides of the {\it mother}
+(Figures~\ref{mother_back} and~\ref{mother_front}) should be glued rigidly
+back-to-back, perhaps sandwiching a piece of rigid card. The {\it rete},
+printed onto transparent acetate\footnote{Historically, the rete would have
+been made of the same material as the rest of the astrolabe and marked with
+arrows showing the positions of prominent stars. As much of the material of the
+rete as possible would then have been cut away to allow the climate below to be
+seen. We use transparent plastic here because it is so much more practical than
+the traditional form of rete.}, should be placed over the {\it climate}, which
+for simplicity is incorporated into the front of the mother in this document.
+
+The {\it rule} and the {\it alidade} should be placed on either side of the
+astrolabe: the rule, marked out with a declination scale, should rotate over
+the front of the mother; the alidade should rotate over the back of the mother.
+The two tabs on the side of the alidade should be folded out to form a sight
+used for measuring the altitudes of celestial and terrestrial objects.  The
+whole construction may then finally be fastened together by placing a split-pin
+paper fastener through the centre.
+
+\section*{How to use an astrolabe}
+
+For more information about how to use your astrolabe, see the author's website,
+
+\centerline{\url{https://in-the-sky.org/astrolabe/}}
+
+or download a copy of the author's paper about the astrolabe, which was published in the Journal of the British Astronomical Association, and can be downloaded here:
+
+\centerline{\url{https://in-the-sky.org/astrolabe/astrolabe\_jbaa.pdf}}
+
+\section*{Customised Astrolabes}
+
+The astrolabe images presented here were produced using PyXPlot, an open-source
+vector graphics scripting language developed by the same author.  PyXPlot has a
+website\footnote{\url{http://www.pyxplot.org.uk}} with extensive documentation,
+and is available as a standard package in a number of Linux distributions
+including Ubuntu, Debian and Gentoo. Unfortunately, it is not available for
+Microsoft Windows at the present time.
+
+The PyXPlot scripts used to generate the images in this document are included
+in the accompanying file archive and may be modified to generate customised
+astrolabes. For example, to produce an astrolabe with your own choice of
+saints' days or birthdays on the back of the mother, the file {\tt
+Raw\-Data/\-Saints\-Days\-.dat} should be modified. A {\tt python} script, {\tt
+main.py}, is included which rebuilds all of the image files shipped in the {\tt
+astrolabe\_parts} folder.
+
+\begin{thebibliography}{9}
+\bibitem{Ford}Ford, D.C., \textit{J.\ Brit.\ astr.\ Ass.}, 131(1), 33 (2012).
+\bibitem{chaucer}Chaucer, G., \textit{Treatise on the Astrolabe}, in {\it The Riverside Chaucer}, ed.\ L.D.\ Benson (Boston, 1987)
+\bibitem{pap1}Eisner, S., \textit{J.\ Brit.\ astr.\ Ass.}, \textbf{86}(1), 18-29 (1975)
+\bibitem{pap2}Eisner, S., \textit{J.\ Brit.\ astr.\ Ass.}, \textbf{86}(2), 125-132 (1976a)
+\bibitem{pap3}Eisner, S., \textit{J.\ Brit.\ astr.\ Ass.}, \textbf{86}(3), 219-227 (1976b)
+\end{thebibliography}
+
+\newpage
+
+\begin{figure}
+\centerline{\includegraphics{tmp/mother_back}}
+\caption{The back of the mother of the astrolabe.}
+\label{mother_back}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics{tmp/mother_front}}
+\caption{The front of the mother of the astrolabe, with combined climate.
+Should a climate for a different latitude be required, the accompanying file archive should be downloaded. This includes alternative versions of this document for any latitude on the Earth at $5^\circ$ intervals.}
+\label{mother_front}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics{tmp/rule}}
+\caption{Left: The rule, which should be mounted on the front of the astrolabe. Right: The alidade, which should be mounted on the back of the astrolabe.}
+\label{rule}
+\end{figure}
+
+\begin{figure}
+\centerline{\includegraphics{tmp/rete}}
+\caption{The rete of the astrolabe, showing the stars of the night sky. This should be printed onto a piece of transparent plastic; most stationers should be able to provide acetate sheets for use on overhead projectors, which are ideal for this purpose.}
+\label{rete}
+\end{figure}
+
+\end{document}
+
