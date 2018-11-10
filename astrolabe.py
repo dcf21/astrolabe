@@ -26,6 +26,8 @@ to build an astrolabe for that latitude, and instructions as to how to put them 
 """
 
 import os
+import subprocess
+import time
 
 import text
 from climate import Climate
@@ -86,7 +88,7 @@ for language in text.text:
 
         # Render the climate of the astrolabe
         Climate(settings=settings).render_all_formats(
-            filename="{dir_parts}/rule_{abs_lat:02d}{ns}_{lang}".format(**subs)
+            filename="{dir_parts}/climate_{abs_lat:02d}{ns}_{lang}".format(**subs)
         )
 
         # Make combined mother and climate
@@ -105,21 +107,26 @@ for language in text.text:
         # PDF file containing all the parts of this astrolabe
         os.system("mkdir -p doc/tmp")
         os.system("cp {dir_parts}/mother_back_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/mother_back.pdf".format(**subs))
-        os.system("cp {dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/mother_front.pdf".format(**subs))
+        os.system(
+            "cp {dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/mother_front.pdf".format(**subs))
         os.system("cp {dir_parts}/rete_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/rete.pdf".format(**subs))
         os.system("cp {dir_parts}/rule_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/rule.pdf".format(**subs))
 
-        open("doc/tmp/lat.tex", "wt").write(r"${abs_lat:d}^\circ${ns}".format(**subs))
+        with open("doc/tmp/lat.tex", "wt") as f:
+            f.write(r"${abs_lat:d}^\circ${ns}".format(**subs))
+
+        # Wait for cairo to wake up and close the files
+        time.sleep(1)
 
         # Build LaTeX documentation
         for build_pass in range(3):
-            os.system("cd doc ; pdflatex astrolabe.tex")
-        os.system("mv doc/astrolabe.pdf output/astrolabes/astrolabe_{abs_lat:02d}{ns}_{lang}.pdf".format(**subs))
+            subprocess.check_output("cd doc ; pdflatex astrolabe.tex", shell=True)
+        os.system("mv doc/astrolabe.pdf {dir_out}/astrolabe_{abs_lat:02d}{ns}_{lang}.pdf".format(**subs))
 
         # For the English language astrolabe, create a symlink with no language suffix in the filename
         if language == "en":
-            os.system("ln -s doc/planisphere_{abs_lat:02d}{ns}_en.pdf "
-                      "output/planispheres/planisphere_{abs_lat:02d}{ns}.pdf".format(**subs))
+            os.system("ln -s astrolabe_{abs_lat:02d}{ns}_en.pdf "
+                      "{dir_out}/astrolabe_{abs_lat:02d}{ns}.pdf".format(**subs))
 
         # Clean up the rubbish that LaTeX leaves behind
         os.system("cd doc ; rm -f *.aux *.log *.dvi *.ps *.pdf")

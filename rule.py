@@ -39,18 +39,20 @@ class Rule(BaseComponent):
         """
         return "rule"
 
-    def bounding_box(self):
+    def bounding_box(self, settings):
         """
         Return the bounding box of the canvas area used by this component.
 
+        :param settings:
+            A dictionary of settings required by the renderer.
         :return:
          Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
         return {
-            'x_min': -50 * unit_cm,
-            'x_max': 50 * unit_cm,
-            'y_min': -50 * unit_cm,
-            'y_max': 50 * unit_cm
+            'x_min': -2 * unit_cm,
+            'x_max': 4 * unit_cm,
+            'y_min': -r_1 * 1.2,
+            'y_max': r_1 * 1.2
         }
 
     def do_rendering(self, settings, context):
@@ -83,37 +85,48 @@ class Rule(BaseComponent):
         def rule_draw(context, xpos, ypos, sight):
             context.begin_path()
             context.circle(centre_x=xpos, centre_y=ypos, radius=r_3)
+            context.stroke()
 
-            context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=0, arc_to=90)
-            context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=180, arc_to=270)
+            context.begin_path()
+            context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=-90 * unit_deg, arc_to=0)
+            context.stroke()
+
+            context.begin_path()
+            context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=90 * unit_deg, arc_to=180 * unit_deg)
+            context.stroke()
+
+            context.begin_path()
 
             context.move_to(x=xpos, y=ypos + r_6)
             context.line_to(x=xpos, y=ypos + (r_2 + margin) + r_6)
-            context.line_to(x=xpos - r_6, y=ypos + (r_2 + margin))
-            context.line_to(x=xpos - r_6, y=ypos)
+            context.line_to(x=xpos + r_6, y=ypos + (r_2 + margin))
+            context.line_to(x=xpos + r_6, y=ypos)
 
             context.move_to(x=xpos, y=ypos - r_6)
             context.line_to(x=xpos, y=ypos - (r_2 + margin) - r_6)
-            context.line_to(x=xpos + r_6, y=ypos - (r_2 + margin))
-            context.line_to(x=xpos + r_6, y=ypos)
-
-            if sight:
-                context.rectangle(x0=xpos, y0=ypos - r_2 * 0.65, x1=xpos - r_2 * 0.1, y1=ypos - r_2 * 0.85)
-                context.rectangle(x0=xpos, y0=ypos + r_2 * 0.65, x1=xpos + r_2 * 0.1, y1=ypos + r_2 * 0.85)
+            context.line_to(x=xpos - r_6, y=ypos - (r_2 + margin))
+            context.line_to(x=xpos - r_6, y=ypos)
 
             context.stroke()
+
+            if sight:
+                context.begin_path()
+                context.rectangle(x0=xpos, y0=ypos - r_2 * 0.65, x1=xpos + r_2 * 0.1, y1=ypos - r_2 * 0.85)
+                context.begin_sub_path()
+                context.rectangle(x0=xpos, y0=ypos + r_2 * 0.65, x1=xpos - r_2 * 0.1, y1=ypos + r_2 * 0.85)
+                context.stroke()
 
         # Draw outlines of rule and the alidade
         separation = 2.2 * unit_cm
 
-        context.set_font_size(1.1)
+        context.set_font_size(0.9)
 
         # Only alidade has a sight
         rule_draw(context, 0 * unit_cm, 0 * unit_cm, False)
-        context.text(text="(a) Rule", x=-7 * unit_mm, y=-(r_2 + margin + 1.5 * r_6))
+        context.text(text="(a) Rule", x=-7 * unit_mm, y=r_2 + margin + 1.5 * r_6)
 
         rule_draw(context, separation, 0 * unit_cm, True)
-        context.text(text="(b) Alidade", x=separation - 7 * unit_mm, y=-(r_2 + margin + 1.5 * r_6))
+        context.text(text="(b) Alidade", x=separation - 7 * unit_mm, y=r_2 + margin + 1.5 * r_6)
 
         # Draw declination scale on rule
         major_tick_length = 4 * unit_mm
@@ -128,24 +141,26 @@ class Rule(BaseComponent):
             r = r_4 * tan(theta)
             if is_southern:
                 dec *= -1
-            if (dec % 10) == 0:
+            if (dec < 60) and (dec % 10 == 0):
                 context.begin_path()
-                context.move_to(x=0, y=r)
-                context.line_to(x=-major_tick_length, y=r)
+                context.move_to(x=0, y=-r)
+                context.line_to(x=-major_tick_length, y=-r)
                 context.stroke()
-                context.text(text=dec, x=-major_tick_length, y=r, rotation=-90)
+                context.text(text="{}\u00b0".format(dec), x=-major_tick_length, y=-r,
+                             v_align=1, rotation=90 * unit_deg)
 
                 context.begin_path()
-                context.move_to(x=0, y=-r)
-                context.line_to(x=major_tick_length, y=-r)
+                context.move_to(x=0, y=r)
+                context.line_to(x=major_tick_length, y=r)
                 context.stroke()
-                context.text(text=dec, x=major_tick_length, y=-r, rotation=90)
+                context.text(text="{}\u00b0".format(dec), x=major_tick_length, y=r,
+                             v_align=1, rotation=-90 * unit_deg)
             else:
                 context.begin_path()
-                context.move_to(x=0, y=r)
-                context.line_to(x=-minor_tick_length, y=r)
                 context.move_to(x=0, y=-r)
-                context.line_to(x=minor_tick_length, y=-r)
+                context.line_to(x=-minor_tick_length, y=-r)
+                context.move_to(x=0, y=r)
+                context.line_to(x=minor_tick_length, y=r)
                 context.stroke()
 
         # Draw solar-altitude scale on alidade
@@ -154,26 +169,28 @@ class Rule(BaseComponent):
         for i in range(20, 91, 5):
             r = r_12 * sin(i * unit_deg)
             context.begin_path()
-            context.move_to(x=separation, y=r)
-            context.line_to(x=separation - major_tick_length / 2, y=r)
             context.move_to(x=separation, y=-r)
-            context.line_to(x=separation + major_tick_length / 2, y=-r)
+            context.line_to(x=separation - major_tick_length / 2, y=-r)
+            context.move_to(x=separation, y=r)
+            context.line_to(x=separation + major_tick_length / 2, y=r)
             context.stroke()
 
         for i in [20, 35, 50, 80]:
             r = r_12 * sin(i * unit_deg)
 
             context.begin_path()
-            context.move_to(x=separation, y=r)
-            context.line_to(x=separation - major_tick_length, y=r)
+            context.move_to(x=separation, y=-r)
+            context.line_to(x=separation - major_tick_length, y=-r)
             context.stroke()
-            context.text(text=i, x=separation - major_tick_length, y=r, rotation=-90)
+            context.text(text="{}\u00b0".format(i), x=separation - major_tick_length, y=-r,
+                         v_align=1, rotation=90 * unit_deg)
 
             context.begin_path()
-            context.move_to(x=separation, y=-r)
-            context.line_to(x=separation + major_tick_length, y=-r)
+            context.move_to(x=separation, y=r)
+            context.line_to(x=separation + major_tick_length, y=r)
             context.stroke()
-            context.text(text=i, x=separation + major_tick_length, y=-r, rotation=90)
+            context.text(text="{}\u00b0".format(i), x=separation + major_tick_length, y=r,
+                         v_align=1, rotation=-90 * unit_deg)
 
 
 # Do it right away if we're run as a script

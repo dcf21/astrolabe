@@ -23,7 +23,7 @@ The file contains global settings for the astrolabe.
 from math import pi
 
 # Units
-dots_per_inch = 50
+dots_per_inch = 200
 
 unit_m = 1.
 unit_cm = 1. / 100
@@ -43,10 +43,11 @@ r_1 = 8.5 * unit_cm
 d_12 = 0.07 * r_1
 
 # Font size
-font_size_base = 0.9
+font_size_base = 3.2 * unit_mm
+line_width_base = 0.2 * unit_mm
 
 # Size of tab into which climate slots
-tab_size = 4 * unit_deg
+tab_size = 5 * unit_deg
 
 # Scaling factor for size of hole in middle of astrolabe
 centre_scaling = 1 / 2.5 * 0.6

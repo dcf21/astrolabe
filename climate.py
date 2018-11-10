@@ -22,7 +22,7 @@ Render the climate of the astrolabe.
 """
 
 import re
-from math import sin, tan, cos, atan2, hypot, acos
+from math import pi, sin, tan, cos, atan2, hypot, acos
 
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12, tab_size
 from graphics_context import BaseComponent
@@ -42,15 +42,17 @@ class Climate(BaseComponent):
         """
         return "climate"
 
-    def bounding_box(self):
+    def bounding_box(self, settings):
         """
         Return the bounding box of the canvas area used by this component.
 
+        :param settings:
+            A dictionary of settings required by the renderer.
         :return:
             Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
 
-        r_outer = r_1 + 3 * unit_cm
+        r_outer = r_1 - d_12 * 2.5
 
         return {
             'x_min': -r_outer,
@@ -90,25 +92,38 @@ class Climate(BaseComponent):
         r_5 = r_4 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
 
         # Draw the outer edge of climate
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_2)
+        context.begin_sub_path()
+        context.circle(centre_x=0, centre_y=0, radius=r_3)
+        context.stroke()
+        context.clip()
 
         # Draw the equator
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_4)
+        context.stroke()
 
         # Draw the tropic of Cancer
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_5)
+        context.stroke()
 
         # Make the tab at the top of the climate
-        context.arc(centre_x=0, centre_y=0, radius=r_tab, arc_from=-tab_size, arc_to=tab_size)
-        context.move_to(x=r_tab * sin(tab_size), y=r_tab * cos(tab_size))
-        context.line_to(x=r_2 * sin(tab_size), y=r_2 * cos(tab_size))
-        context.move_to(x=-r_tab * sin(tab_size), y=r_tab * cos(tab_size))
-        context.line_to(x=-r_2 * sin(tab_size), y=r_2 * cos(tab_size))
+        context.begin_path()
+        context.arc(centre_x=0, centre_y=0, radius=r_tab,
+                    arc_from=-tab_size - pi / 2, arc_to=tab_size - pi / 2)
+        context.move_to(x=r_tab * sin(tab_size), y=-r_tab * cos(tab_size))
+        context.line_to(x=r_2 * sin(tab_size), y=-r_2 * cos(tab_size))
+        context.move_to(x=-r_tab * sin(tab_size), y=-r_tab * cos(tab_size))
+        context.line_to(x=-r_2 * sin(tab_size), y=-r_2 * cos(tab_size))
+        context.stroke()
 
         # Draw lines of constant altitude
-        for c in [-6, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85]:
-            theta1 = (-latitude - (90 - c)) * unit_deg
-            theta2 = (-latitude + (90 - c)) * unit_deg
+        context.set_font_style(bold=True)
+        for altitude in [-6, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85]:
+            theta1 = (-latitude - (90 - altitude)) * unit_deg
+            theta2 = (-latitude + (90 - altitude)) * unit_deg
 
             x1 = r_4 * sin(theta1)
             y1 = r_4 * cos(theta1)
@@ -119,33 +134,39 @@ class Climate(BaseComponent):
             y_b = y2 * (r_4 / (r_4 - x2))
 
             # Record centre and radius of the arc denoting the horizon
-            if c == 0:
+            if altitude == 0:
                 horizon_centre = (y_a + y_b) / 2
                 horizon_radius = (y_b - y_a) / 2
 
             if y_b < r_2:
                 start = 0
-                end = 360
-                if (c % 10) == 0:
-                    context.text(text="\bf %d" % (c), x=0, y=y_b, h_align=0, v_align=1, gap=0, rotation=0)
+                end = 360 * unit_deg
+                if (altitude % 10) == 0:
+                    context.text(text="{:d}".format(altitude), x=0, y=-y_b, h_align=0, v_align=1, gap=0, rotation=0)
             else:
                 r = (y_b - y_a) / 2
                 y = (y_a + y_b) / 2
                 start = 180 * unit_deg - acos(
                     (r ** 2 + y ** 2 - r_2 ** 2) / (2 * ((y_b - y_a) / 2) * ((y_a + y_b) / 2)))
                 end = -start
-                if (c % 10) == 0:
-                    context.text(text="\bf %d" % (c), x=r * sin(start + (r_2 / r) * 2 * unit_deg),
-                                 y=(y_a + y_b) / 2 + r * cos(start + (r_2 / r) * 2 * unit_deg), h_align=0, v_align=0,
+                if (altitude>0) and (altitude % 10 == 0):
+                    context.text(text="{:d}".format(altitude),
+                                 x=r * sin(start + (r_2 / r) * 2 * unit_deg),
+                                 y=-(y_a + y_b) / 2 - r * cos(start + (r_2 / r) * 3 * unit_deg),
+                                 h_align=0, v_align=0,
                                  gap=0,
-                                 rotation=180 * unit_deg - (start + (r_2 / r) * 2 * unit_deg))
-                    context.text(text="\bf %d" % (c), x=r * sin(end - (r_2 / r) * 2 * unit_deg),
-                                 y=(y_a + y_b) / 2 + r * cos(end - (r_2 / r) * 2 * unit_deg), h_align=0, v_align=0,
+                                 rotation=180 * unit_deg + (start + (r_2 / r) * 3 * unit_deg))
+                    context.text(text="{:d}".format(altitude),
+                                 x=r * sin(end - (r_2 / r) * 2 * unit_deg),
+                                 y=-(y_a + y_b) / 2 - r * cos(end - (r_2 / r) * 3 * unit_deg),
+                                 h_align=0, v_align=0,
                                  gap=0,
-                                 rotation=180 * unit_deg - (end - (r_2 / r) * 2 * unit_deg))
+                                 rotation=180 * unit_deg + (end - (r_2 / r) * 3 * unit_deg))
 
-            # with linetype 1+(c<0) linewidth 0.5+1.5*(c<=0)
-            context.arc(centre_x=0, centre_y=(y_a + y_b) / 2, radius=(y_b - y_a) / 2, arc_from=start, arc_to=end)
+            context.begin_path()
+            context.circle(centre_x=0, centre_y=-(y_a + y_b) / 2, radius=(y_b - y_a) / 2)
+            context.stroke(dotted=(altitude < 0),
+                           line_width=0.6 + 1.2 * int(altitude == 0))
 
         # Find coordinates of P
         theta = -latitude * unit_deg
@@ -169,7 +190,7 @@ class Climate(BaseComponent):
 
         # Draw lines of constant azimuth
         ss = 11.25 * unit_deg
-        c = -90 * unit_deg + ss
+        altitude = -90 * unit_deg + ss
         for direction in ["", "NNW", "", "NW", "", "WNW", "", "W", "", "WSW", "", "SW", "", "SSW", ""]:
             if is_southern:
                 direction = re.sub("N", "s", direction)
@@ -179,7 +200,7 @@ class Climate(BaseComponent):
                 direction = re.sub("E", "W", direction)
                 direction = re.sub("e", "E", direction)
 
-            t_x = (z_y - t_y) * tan(c)
+            t_x = (z_y - t_y) * tan(altitude)
 
             # Radius of arc of constant azimuth
             t_r = hypot(t_x, t_y - z_y)
@@ -201,18 +222,23 @@ class Climate(BaseComponent):
                 start2 = -phi - theta
                 end2 = -phi + theta
 
-            # with lw 0.5
-            context.arc(centre_x=t_x, centre_y=t_y, radius=t_r, arc_from=max(start, start2), arc_to=min(end, end2))
+            context.begin_path()
+            context.arc(centre_x=t_x, centre_y=-t_y, radius=t_r,
+                        arc_from=max(start, start2) - pi / 2, arc_to=min(end, end2) - pi / 2)
+            context.stroke(line_width=0.5)
 
+            context.set_font_style(bold=True)
             if hypot(t_x + t_r * sin(end), t_y + t_r * cos(end)) < 0.9 * r_2:
-                context.text(text="\bf %s" % (direction),
-                             x=t_x + t_r * sin(end), y=t_y + t_r * cos(end),
-                             h_align=0, v_align=-1, gap=unit_mm, rotation=90 * unit_deg - end)
+                context.text(text=direction,
+                             x=t_x + t_r * sin(end), y=-t_y - t_r * cos(end),
+                             h_align=0, v_align=1, gap=unit_mm,
+                             rotation=end - 90 * unit_deg)
             else:
-                context.text(text="\bf %s" % (direction),
+                context.text(text=direction,
                              x=t_x + t_r * sin(min(end, end2) - (r_2 / t_r) * 8 * unit_deg),
-                             y=t_y + t_r * cos(min(end, end2) - (r_2 / t_r) * 8 * unit_deg),
-                             h_align=0, v_align=0, gap=0, rotation=-(min(end, end2) - (r_2 / t_r) * 8 * unit_deg))
+                             y=-t_y - t_r * cos(min(end, end2) - (r_2 / t_r) * 8 * unit_deg),
+                             h_align=0, v_align=0, gap=0,
+                             rotation=(min(end, end2) - (r_2 / t_r) * 8 * unit_deg))
 
             direction = re.sub("N", "s", direction)
             direction = re.sub("S", "N", direction)
@@ -222,25 +248,28 @@ class Climate(BaseComponent):
             direction = re.sub("e", "E", direction)
 
             if hypot(t_x + t_r * sin(start), t_y + t_r * cos(start)) < 0.9 * r_2:
-                context.text(text="\bf %s" % (direction),
-                             x=t_x + t_r * sin(start), y=t_y + t_r * cos(start),
-                             h_align=0, v_align=-1, gap=unit_mm, rotation=-90 * unit_deg - start)
+                context.text(text=direction,
+                             x=t_x + t_r * sin(start),
+                             y=-t_y - t_r * cos(start),
+                             h_align=0, v_align=1, gap=unit_mm,
+                             rotation=90 * unit_deg + start)
             else:
-                context.text(text="\bf %s" % (direction),
+                context.text(text=direction,
                              x=t_x + t_r * sin(max(start, start2) + (r_2 / t_r) * 8 * unit_deg),
-                             y=t_y + t_r * cos(max(start, start2) + (r_2 / t_r) * 8 * unit_deg),
-                             h_align=0, v_align=0, gap=0, rotation=-(max(start, start2) + (r_2 / t_r) * 8 * unit_deg))
+                             y=-t_y - t_r * cos(max(start, start2) + (r_2 / t_r) * 8 * unit_deg),
+                             h_align=0, v_align=0, gap=0,
+                             rotation=(max(start, start2) + (r_2 / t_r) * 8 * unit_deg))
 
-            c = c + ss
+            altitude = altitude + ss
 
         if not is_southern:
-            context.text(text="\bf N",
-                         x=0, y=horizon_centre - horizon_radius,
-                         h_align=0, v_align=-1, gap=unit_mm, rotation=0)
+            context.text(text="N",
+                         x=0, y=-horizon_centre + horizon_radius,
+                         h_align=0, v_align=1, gap=unit_mm, rotation=0)
         else:
-            context.text(text="\bf S",
-                         x=0, y=horizon_centre - horizon_radius,
-                         h_align=0, v_align=-1, gap=unit_mm, rotation=0)
+            context.text(text="S",
+                         x=0, y=-horizon_centre + horizon_radius,
+                         h_align=0, v_align=1, gap=unit_mm, rotation=0)
 
         # Subroutine for calculating the azimuthal angle of the lines of the unequal hours
         def theta_unequal_hours(r):
@@ -260,38 +289,45 @@ class Climate(BaseComponent):
                 theta1 = theta_unequal_hours(r1)
                 psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
                 psi1 = theta1 + (360 * unit_deg - 2 * theta1) / 12 * h
-                context.move_to(x=r0 * sin(psi0), y=r0 * cos(psi0))
-                context.line_to(x=r1 * sin(psi1), y=r1 * cos(psi1))
+                context.begin_path()
+                context.move_to(x=r0 * sin(psi0), y=-r0 * cos(psi0))
+                context.line_to(x=r1 * sin(psi1), y=-r1 * cos(psi1))
+                context.stroke(line_width=1, dotted=False)
 
         # Label the unequal hours
-        context.set_font_size(2.0)
+        context.set_font_size(1.6)
         h = 0.5
-        r = r_2 - 2 * unit_mm
+        r = r_2 - 4 * unit_mm
         theta0 = theta_unequal_hours(r)
+        context.set_font_style(bold=False)
         for hr in ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]:
             psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
             psi0 = (psi0 - 180 * unit_deg) * 0.95 + 180 * unit_deg
-            context.text(text="%s" % (hr), x=r * sin(psi0), y=r * cos(psi0), h_align=0, v_align=1, gap=unit_mm,
-                         rotation=180 * unit_deg - psi0)
+            context.text(text=hr,
+                         x=r * sin(psi0), y=-r * cos(psi0),
+                         h_align=0, v_align=0, gap=unit_mm,
+                         rotation=180 * unit_deg + psi0)
             h = h + 1
 
         # White out r_3
+        context.begin_path()
         context.move_to(x=-r_2, y=0)
         context.line_to(x=r_2, y=0)
-        context.move_to(x=0, y=-r_2)
-        context.line_to(x=0, y=r_2)
-        context.circle(centre_x=0, centre_y=0, radius=r_3)  # w fillc white
+        context.move_to(x=0, y=r_2)
+        context.line_to(x=0, y=-r_2)
+        context.stroke(line_width=1, dotted=False)
 
         # Finish up
+        context.set_font_style(bold=False)
         context.circular_text(text=text[language]['url'],
                               centre_x=0, centre_y=0, radius=r_2 - 1.6 * unit_cm,
-                              azimuth=270 * unit_deg, spacing=0.8, size=0.7)
+                              azimuth=270, spacing=1, size=0.7)
         context.circular_text(text=text[language]['copyright'],
                               centre_x=0, centre_y=0, radius=r_2 - 1.3 * unit_cm,
-                              azimuth=270 * unit_deg, spacing=0.8, size=0.7)
+                              azimuth=270, spacing=1, size=0.7)
         context.circular_text(text=text[language]['climate_latitude'].format(latitude, "N" if not is_southern else "S"),
                               centre_x=0, centre_y=0, radius=r_2 - 1.0 * unit_cm,
-                              azimuth=270 * unit_deg, spacing=0.8, size=0.7)
+                              azimuth=270, spacing=1, size=0.7)
 
 
 # Do it right away if we're run as a script

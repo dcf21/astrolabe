@@ -21,10 +21,10 @@
 Render the rete of the astrolabe.
 """
 
-from math import sin, tan, cos, asin, floor
+from math import pi, sin, tan, cos, asin, floor
 
 from bright_stars_process import fetch_bright_star_list
-from constants import unit_deg, unit_rev, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12
+from constants import unit_deg, unit_rev, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12, line_width_base
 from graphics_context import BaseComponent
 from numpy import arange
 from settings import fetch_command_line_arguments
@@ -42,18 +42,23 @@ class Rete(BaseComponent):
         """
         return "rete"
 
-    def bounding_box(self):
+    def bounding_box(self, settings):
         """
         Return the bounding box of the canvas area used by this component.
 
+        :param settings:
+            A dictionary of settings required by the renderer.
         :return:
          Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
+
+        r_outer = r_1 - d_12 * 2.7
+
         return {
-            'x_min': -50 * unit_cm,
-            'x_max': 50 * unit_cm,
-            'y_min': -50 * unit_cm,
-            'y_max': 50 * unit_cm
+            'x_min': -r_outer,
+            'x_max': r_outer,
+            'y_min': -r_outer,
+            'y_max': r_outer
         }
 
     def do_rendering(self, settings, context):
@@ -71,7 +76,7 @@ class Rete(BaseComponent):
         is_southern = settings['latitude'] < 0
         language = settings['language']
 
-        context.set_font_size(1.2)
+        context.set_font_size(1.0)
 
         # The radius of the tab at the top of climate, relative to the centre of the astrolabe
         r_tab = r_1 - d_12 * 2.5 - unit_mm
@@ -89,13 +94,84 @@ class Rete(BaseComponent):
         r_5 = r_4 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
 
         # Draw the outer edge of rete
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_2)
+        context.stroke()
+
+        context.begin_path()
+        context.circle(centre_x=0, centre_y=0, radius=r_3)
+        context.stroke()
+
+        # Draw ecliptic
+        y_ecl_centre = (r_2 - r_5) / 2  # Ecliptic circle centred on centre point between +r_2 and -r_5
+        r_ecl_outer = (r_2 + r_5) / 2  # Outer radius of ecliptic circle... circle touches r_2 and -r_5
+        r_ecl_inner = r_ecl_outer * 0.9
+        r_ecl_centre = (r_ecl_outer + r_ecl_inner * 2) / 3
+
+        context.begin_path()
+        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_outer)
+        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_inner)
+        context.stroke(line_width=1, color=(0, 0, 0, 1))
+
+        # Draw tick marks along ecliptic
+        for theta in arange(0 * unit_deg, 359 * unit_deg, 2 * unit_deg):
+            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
+            psi = theta + alpha  # Angles in triangle add up to 180 degrees
+
+            t = floor((theta / unit_deg) + 0.01)
+            if (t % 30) == 0:
+                r_tick_inner = r_ecl_inner
+            elif (t % 10) == 0:
+                r_tick_inner = (r_ecl_outer + r_ecl_inner) / 2
+            else:
+                r_tick_inner = (3 * r_ecl_outer + r_ecl_inner) / 4
+
+            context.begin_path()
+            context.move_to(x=r_ecl_outer * sin(psi), y=y_ecl_centre + r_ecl_outer * cos(psi))
+            context.line_to(x=r_tick_inner * sin(psi), y=y_ecl_centre + r_tick_inner * cos(psi))
+            context.stroke()
+
+        # Write zodiacal constellation names around ecliptic
+        if not is_southern:
+            text_size = 1
+        else:
+            text_size = 0.7
+
+        # Write labels for the zodiacal constellations
+        for i, item in enumerate(text[language]["zodiacal_constellations"]):
+            i += 1
+            name = item['name']
+            if not is_southern:
+                theta = (-90 + 15 - 30 * i) * unit_deg
+            else:
+                theta = (-90 - 15 + 30 * i) * unit_deg
+                name = name[:8]
+
+            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
+            psi = 90 * unit_deg - (theta + alpha)  # Angles in triangle add up to 180 degrees
+            context.circular_text(text=name, centre_x=0, centre_y=y_ecl_centre, radius=r_ecl_centre * 1.02,
+                                  azimuth=-psi / unit_deg, spacing=0.9, size=text_size)
+
+        # Set clipping region
+        context.begin_path()
+        context.circle(centre_x=0, centre_y=0, radius=r_2)
+        context.begin_sub_path()
+        context.circle(centre_x=0, centre_y=0, radius=r_3)
+        context.begin_sub_path()
+        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_outer)
+        context.begin_sub_path()
+        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_inner)
+        context.clip()
 
         # Draw the equator
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_4)
+        context.stroke()
 
         # Tropic of Cancer
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_5)
+        context.stroke()
 
         # Draw constellation stick figures
         for line in open("raw_data/constellation_stick_figures.dat"):
@@ -124,8 +200,10 @@ class Rete(BaseComponent):
             if r_point_2 > r_2:
                 continue
 
+            context.begin_path()
             context.move_to(x=-r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
-            context.line_to(x=-r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))  # with lt 2 lw 1 col grey25)
+            context.line_to(x=-r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
+            context.stroke(dotted=True, line_width=1, color=(0.25, 0.25, 0.25, 1))
 
         # Draw stars from Yale Bright Star Catalogue
         for star_descriptor in fetch_bright_star_list()['stars'].values():
@@ -149,7 +227,10 @@ class Rete(BaseComponent):
                 continue
 
             # Draw a circle to represent this star
-            context.circle(centre_x=-r * cos(ra * unit_deg), centre_y=-r * sin(ra * unit_deg), radius=0.18 * (5 - mag))
+            context.begin_path()
+            context.circle(centre_x=-r * cos(ra * unit_deg), centre_y=-r * sin(ra * unit_deg),
+                           radius=0.18 * unit_mm * (5 - mag))
+            context.fill(color=(0, 0, 0, 1))
 
         # Draw RA scale
         r_tick = r_2 * 0.98
@@ -157,69 +238,22 @@ class Rete(BaseComponent):
             theta = ra / 24 * unit_rev
             if is_southern:
                 ra = 24 - ra
+            context.begin_path()
             context.move_to(x=-r_2 * cos(theta), y=-r_2 * sin(theta))
             context.line_to(x=-r_tick * cos(theta), y=-r_tick * sin(theta))
-            context.text(text="%d$^\mathrm{h}$" % (ra), x=-r_tick * cos(theta), y=-r_tick * sin(theta), h_align=0,
-                         v_align=1, gap=unit_mm, rotation=(-90 * unit_deg + theta))
+            context.stroke(dotted=False, line_width=1, color=(0, 0, 0, 1))
+
+            context.text(text="{:.0f}ʰ".format(ra),
+                         x=r_tick * cos(theta), y=-r_tick * sin(theta),
+                         h_align=0, v_align=-1, gap=unit_mm, rotation=-pi / 2 - theta)
 
         r_tick = r_2 * 0.99
         for ra in arange(0, 23.9, 1. / 6):
             theta = ra / 24 * unit_rev
-            context.move_to(x=-r_2 * cos(theta), y=-r_2 * sin(theta))
-            context.line_to(x=-r_tick * cos(theta), y=-r_tick * sin(theta))
-
-        # Draw ecliptic
-        y_ecl_centre = (r_2 - r_5) / 2  # Ecliptic circle centred on centre point between +r_2 and -r_5
-        r_ecl_outer = (r_2 + r_5) / 2  # Outer radius of ecliptic circle... circle touches r_2 and -r_5
-        r_ecl_inner = r_ecl_outer * 0.9
-        r_ecl_centre = (r_ecl_outer + r_ecl_inner * 2) / 3
-
-        # with lw (r_ecl_outer-r_ecl_inner)/0.2*mm col white
-        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2,
-                       radius=(r_ecl_outer + r_ecl_inner) / 2)
-
-        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_outer)
-        context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_inner)
-
-        # Draw tick marks along ecliptic
-        for theta in arange(0 * unit_deg, 359 * unit_deg, 2 * unit_deg):
-            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
-            psi = theta + alpha  # Angles in triangle add up to 180 degrees
-
-            t = floor((theta / unit_deg) + 0.01)
-            if (t % 30) == 0:
-                r_tick_inner = r_ecl_inner
-            elif (t % 10) == 0:
-                r_tick_inner = (r_ecl_outer + r_ecl_inner) / 2
-            else:
-                r_tick_inner = (3 * r_ecl_outer + r_ecl_inner) / 4
-
-            context.move_to(x=r_ecl_outer * sin(psi), y=y_ecl_centre + r_ecl_outer * cos(psi))
-            context.line_to(x=r_tick_inner * sin(psi), y=y_ecl_centre + r_tick_inner * cos(psi))
-
-        # Write zodiacal constellation names around ecliptic
-        if not is_southern:
-            text_size = 1
-        else:
-            text_size = 0.7
-
-        # Write labels for the zodiacal constellations
-        for i, item in enumerate(text[language]["zodiacal_constellations"]):
-            i += 1
-            name = item['name']
-            if not is_southern:
-                theta = (-90 + 15 - 30 * i) * unit_deg
-            else:
-                theta = (-90 - 15 + 30 * i) * unit_deg
-                name = name[:8]
-
-            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
-            psi = 90 * unit_deg - (theta + alpha)  # Angles in triangle add up to 180 degrees
-            context.circular_text(text=name, centre_x=0, centre_y=y_ecl_centre, radius=r_ecl_centre,
-                                  azimuth=psi, spacing=0.9, size=text_size)
-
-        # White out r_3
-        context.circle(centre_x=0, centre_y=0, radius=r_3)  # w fillc white
+            context.begin_path()
+            context.move_to(x=-r_2 * cos(theta), y=r_2 * sin(theta))
+            context.line_to(x=-r_tick * cos(theta), y=r_tick * sin(theta))
+            context.stroke()
 
 
 # Do it right away if we're run as a script

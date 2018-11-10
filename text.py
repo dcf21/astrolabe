@@ -177,6 +177,6 @@ text = {
             },
             "url": "https://in-the-sky.org/astrolabe/index.html",
             "copyright": "\u00A9 Dominic Ford 2018",
-            "climate_latitude": "Climate prepared for latitude {:02d}{:s}"
+            "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}"
         }
 }

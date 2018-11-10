@@ -21,7 +21,7 @@
 Render the front of the mother of the astrolabe.
 """
 
-from math import sin, cos, acos, floor
+from math import pi, sin, cos, acos, floor
 
 from constants import unit_deg, unit_rev, unit_cm, centre_scaling, r_1, d_12, tab_size
 from graphics_context import BaseComponent
@@ -40,20 +40,22 @@ class MotherFront(BaseComponent):
         """
         return "mother_front"
 
-    def bounding_box(self):
+    def bounding_box(self, settings):
         """
         Return the bounding box of the canvas area used by this component.
 
+        :param settings:
+            A dictionary of settings required by the renderer.
         :return:
          Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
 
-        r_outer = r_1 + 3 * unit_cm
+        r_outer = r_1 + 0.5 * unit_cm
 
         return {
             'x_min': -r_outer,
             'x_max': r_outer,
-            'y_min': -r_outer,
+            'y_min': -r_outer - 2 * unit_cm,
             'y_max': r_outer
         }
 
@@ -71,8 +73,6 @@ class MotherFront(BaseComponent):
 
         is_southern = settings['latitude'] < 0
 
-        context.set_font_size(1.2)
-
         # Radii of circles to be drawn on front of mother
         r_2 = r_1 - d_12 * 1.5
         r_3 = r_2 - d_12
@@ -81,29 +81,49 @@ class MotherFront(BaseComponent):
 
         # Draw the handle at the top of the astrolabe
         ang = 180 * unit_deg - acos(unit_cm / r_1)
-        context.arc(centre_x=0, centre_y=r_1, radius=2 * unit_cm, arc_from=-ang, arc_to=ang)
-        context.move_to(x=0, y=r_3)
-        context.line_to(x=0, y=r_1 + 2 * unit_cm)
+        context.begin_path()
+        context.arc(centre_x=0, centre_y=-r_1, radius=2 * unit_cm,
+                    arc_from=-ang - pi / 2, arc_to=ang - pi / 2)
+        context.move_to(x=0, y=-r_3)
+        context.line_to(x=0, y=-r_1 - 2 * unit_cm)
+        context.stroke()
 
         # Draw circles 1-5 onto front of mother
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_1)
+        context.stroke()
+
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_2)
+        context.stroke()
+
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_3)
+        context.stroke()
 
         # Circle four has tab cut out
-        context.arc(centre_x=0, centre_y=0, radius=r_4, arc_from=tab_size, arc_to=360 * unit_deg - tab_size)
+        context.begin_path()
+        context.arc(centre_x=0, centre_y=0, radius=r_4,
+                    arc_from=tab_size - pi / 2, arc_to=360 * unit_deg - tab_size - pi / 2)
+        context.stroke()
 
+        context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_5)
+        context.stroke()
 
         # Between circles 2 and 4, mark 5-degree intervals
-        for theta in arange(5 * unit_deg, 359 * unit_deg, 5 * unit_deg):
-            context.move_to(x=r_2 * sin(theta), y=r_2 * cos(theta))
-            context.line_to(x=r_4 * sin(theta), y=r_4 * cos(theta))
+        for theta in arange(5 * unit_deg, 359.9 * unit_deg, 5 * unit_deg):
+            context.begin_path()
+            context.move_to(x=r_2 * sin(theta), y=-r_2 * cos(theta))
+            context.line_to(x=r_4 * sin(theta), y=-r_4 * cos(theta))
+            context.stroke()
 
         # Between circles 3 and 4, draw a fine scale of 1-degree intervals
-        for theta in arange(tab_size, 360 * unit_deg - tab_size, 1 * unit_deg):
-            context.move_to(x=r_3 * sin(theta), y=r_3 * cos(theta))
-            context.line_to(x=r_4 * sin(theta), y=r_4 * cos(theta))
+        for theta in arange(tab_size, 360.1 * unit_deg - tab_size, 1 * unit_deg):
+            context.begin_path()
+            context.move_to(x=r_3 * sin(theta), y=-r_3 * cos(theta))
+            context.line_to(x=r_4 * sin(theta), y=-r_4 * cos(theta))
+            context.stroke()
 
         # Between circles 2 and 3, label every 10 degrees
         rt_1 = (r_2 + r_3) / 2
@@ -118,40 +138,46 @@ class MotherFront(BaseComponent):
                 theta_disp = theta
             else:
                 theta_disp = -theta + 180 * unit_deg
+
             theta_disp = floor(theta_disp / unit_deg + 0.01)
+
+            context.set_font_size(1.2)
 
             if theta_disp == 0:
                 theta2 = theta
                 context.text(text="0",
-                             x=rt_1 * cos(theta2), y=rt_1 * sin(theta2),
-                             h_align=0, v_align=0, gap=0, rotation=theta + 90 * unit_deg)
+                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                             h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
             elif theta_disp == -180:
                 theta2 = theta
-                context.text(text="\LARGE\kreuz",
-                             x=rt_1 * cos(theta2), y=rt_1 * sin(theta2),
-                             h_align=0, v_align=0, gap=0, rotation=theta + 90 * unit_deg)
+                context.set_font_size(2.1)
+                context.text(text="\u2720",
+                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                             h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
             else:
                 theta2 = theta - 0.2 * unit_deg
-                context.text(text="%d" % (theta_disp / 10),
-                             x=rt_1 * cos(theta2), y=rt_1 * sin(theta2),
-                             h_align=1, v_align=0, gap=0, rotation=theta + 90 * unit_deg)
+                context.text(text="{:.0f}".format(theta_disp / 10),
+                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                             h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
                 theta2 = theta + 0.2 * unit_deg
-                context.text(text="%d" % (theta_disp % 10),
-                             x=rt_1 * cos(theta2), y=rt_1 * sin(theta2),
-                             h_align=-1, v_align=0, gap=0, rotation=theta + 90 * unit_deg)
+                context.text(text="{:.0f}".format(theta_disp % 10),
+                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                             h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
         # Between circles 1 and 2, label 24 hours with large letters. A cross marks midnight.
-        rt_1 = (r_1 + r_2) / 2
-        context.set_font_size(2.0)
-        i = 0
-        for t in ["\LARGE\kreuz", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N", "O", "P", "Q", "R",
-                  "S", "T", "U", "X", "Y", "Z"]:
+        rt_1 = r_1 * 0.55 + r_2 * 0.45
+        for i, t in enumerate(["\u2720", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N",
+                               "O", "P", "Q", "R", "S", "T", "U", "X", "Y", "Z"]):
             theta = i / 24 * unit_rev
             if is_southern:
                 theta = -theta
-            context.text(text="%s" % (t), x=rt_1 * sin(theta), y=rt_1 * cos(theta), h_align=0, v_align=0, gap=0,
-                         rotation=-theta)
-            i = i + 1
+
+            context.set_font_size(2.0 if i > 0 else 2.8)
+
+            context.text(text=t,
+                         x=rt_1 * sin(theta), y=-rt_1 * cos(theta),
+                         h_align=0, v_align=0, gap=0,
+                         rotation=theta)
 
 
 # Do it right away if we're run as a script
