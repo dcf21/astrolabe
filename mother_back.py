@@ -221,6 +221,7 @@ class MotherBack(BaseComponent):
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
+            context.set_font_size(1.2)
             theta_disp = floor(theta / unit_deg + 380.01) % 30 + 10
             theta2 = theta - 0.2 * unit_deg
             context.text(text="{:.0f}".format(theta_disp / 10),
@@ -337,7 +338,7 @@ class MotherBack(BaseComponent):
 
             # Label 10th and 20th day of month, and last day of month
             if ((d % 10) == 0) or (d > 26):
-                context.set_font_size(0.9)
+                context.set_font_size(0.75)
                 theta2 = theta - 0.2 * unit_deg
                 context.text(text="{:.0f}".format(d / 10),
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
@@ -357,7 +358,7 @@ class MotherBack(BaseComponent):
             theta = theta_1394(calendar.julian_day(year=1394, month=mn + 1, day=mlen // 2, hour=12, minute=0, sec=0))
             context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_5 * 0.65 + r_6 * 0.35,
                                   azimuth=theta / unit_deg,
-                                  spacing=1, size=1.0)
+                                  spacing=1, size=0.75)
 
         # Add significant dates between circles 10 and 12
         context.set_font_size(1.0)

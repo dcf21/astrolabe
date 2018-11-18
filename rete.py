@@ -148,9 +148,9 @@ class Rete(BaseComponent):
                 name = name[:8]
 
             alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
-            psi = 90 * unit_deg - (theta + alpha)  # Angles in triangle add up to 180 degrees
+            psi = -90 * unit_deg - (theta + alpha)  # Angles in triangle add up to 180 degrees
             context.circular_text(text=name, centre_x=0, centre_y=y_ecl_centre, radius=r_ecl_centre * 1.02,
-                                  azimuth=-psi / unit_deg, spacing=0.9, size=text_size)
+                                  azimuth=psi / unit_deg, spacing=0.9, size=text_size)
 
         # Set clipping region
         context.begin_path()
@@ -201,8 +201,8 @@ class Rete(BaseComponent):
                 continue
 
             context.begin_path()
-            context.move_to(x=-r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
-            context.line_to(x=-r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
+            context.move_to(x=r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
+            context.line_to(x=r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
             context.stroke(dotted=True, line_width=1, color=(0.25, 0.25, 0.25, 1))
 
         # Draw stars from Yale Bright Star Catalogue
@@ -228,7 +228,7 @@ class Rete(BaseComponent):
 
             # Draw a circle to represent this star
             context.begin_path()
-            context.circle(centre_x=-r * cos(ra * unit_deg), centre_y=-r * sin(ra * unit_deg),
+            context.circle(centre_x=r * cos(ra * unit_deg), centre_y=-r * sin(ra * unit_deg),
                            radius=0.18 * unit_mm * (5 - mag))
             context.fill(color=(0, 0, 0, 1))
 
@@ -251,8 +251,8 @@ class Rete(BaseComponent):
         for ra in arange(0, 23.9, 1. / 6):
             theta = ra / 24 * unit_rev
             context.begin_path()
-            context.move_to(x=-r_2 * cos(theta), y=r_2 * sin(theta))
-            context.line_to(x=-r_tick * cos(theta), y=r_tick * sin(theta))
+            context.move_to(x=r_2 * cos(theta), y=r_2 * sin(theta))
+            context.line_to(x=r_tick * cos(theta), y=r_tick * sin(theta))
             context.stroke()
 
 
