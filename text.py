@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2018 Dominic Ford <dcf21-www_dcford.org.uk>
+# Copyright (C) 2010-2019 Dominic Ford <dcf21-www@dcford.org.uk>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@ text = {
             "constellation_translations": {
             },
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2018",
+            "copyright": "\u00A9 Dominic Ford 2019",
             "climate_latitude": "Climate prepared for latitude {:02d}{:s}"
         },
     "fr":
@@ -176,7 +176,7 @@ text = {
                 "Vulpecula": "Petit_Renard"
             },
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2018",
+            "copyright": "\u00A9 Dominic Ford 2019",
             "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}"
         }
 }
