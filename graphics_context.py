@@ -150,6 +150,7 @@ class GraphicsContext:
 
         self.base_line_width = line_width_base
         self.base_font_size = font_size_base
+        self.font_size = False
         self.font_bold = False
         self.font_italic = False
         self.line_dotted = False
@@ -188,14 +189,14 @@ class GraphicsContext:
         if line_width is not None:
             self.set_line_width(line_width=line_width)
         if color is not None:
-            self.set_color(r=color[0], g=color[1], b=color[2], alpha=color[3])
+            self.set_color(color=color)
         if dotted is not None:
             self.set_line_style(dotted=dotted)
         self.context.stroke_preserve()
 
     def fill(self, color=None):
         if color is not None:
-            self.set_color(r=color[0], g=color[1], b=color[2], alpha=color[3])
+            self.set_color(color=color)
         self.context.fill_preserve()
 
     def clip(self):
@@ -210,22 +211,16 @@ class GraphicsContext:
     def rectangle(self, x0, y0, x1, y1):
         self.context.rectangle(x=x0, y=y0, width=x1 - x0, height=y1 - y0)
 
-    def set_color(self, r, g, b, alpha=1):
+    def set_color(self, color):
         """
         Set the colour used for both stroke and fill operations.
 
-        :param r:
-            Red component; floating point number between 0 and 1.
-        :param g:
-            Green component; floating point number between 0 and 1.
-        :param b:
-            Blue component; floating point number between 0 and 1.
-        :param alpha:
-            Alpha component ; floating point number between 0 and 1.
+        :param color:
+            Red/green/blue/alpha; floating point number between 0 and 1.
         :return:
             None
         """
-        self.context.set_source_rgba(red=r, green=g, blue=b, alpha=alpha)
+        self.context.set_source_rgba(red=color[0], green=color[1], blue=color[2], alpha=color[3])
 
     def set_line_style(self, dotted=None):
         """
@@ -253,6 +248,7 @@ class GraphicsContext:
         :return:
             None
         """
+        self.font_size = font_size
         self.context.set_font_size(font_size * self.base_font_size)
 
     def set_font_style(self, italic=None, bold=None):
@@ -445,10 +441,9 @@ class GraphicsContext:
                 else:
                     line = line_new
             # Add last line of text to buffer
-            if line.strip() != "":
-                line_buffer.append(line)
+            line_buffer.append(line)
 
-        line_heights = [self.measure_text(line)['height'] * line_spacing for line in line_buffer]
+        line_heights = [self.font_size * self.base_font_size * line_spacing for line in line_buffer]
         total_height = sum(line_heights)
 
         # Now draw text, line by line

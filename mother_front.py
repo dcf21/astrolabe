@@ -27,6 +27,7 @@ from constants import unit_deg, unit_rev, unit_cm, centre_scaling, r_1, d_12, ta
 from graphics_context import BaseComponent
 from numpy import arange
 from settings import fetch_command_line_arguments
+from themes import themes
 
 
 class MotherFront(BaseComponent):
@@ -72,6 +73,9 @@ class MotherFront(BaseComponent):
         """
 
         is_southern = settings['latitude'] < 0
+        theme = themes[settings['theme']]
+
+        context.set_color(color=theme['lines'])
 
         # Radii of circles to be drawn on front of mother
         r_2 = r_1 - d_12 * 1.5

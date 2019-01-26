@@ -29,6 +29,7 @@ from graphics_context import BaseComponent
 from numpy import arange
 from settings import fetch_command_line_arguments
 from text import text
+from themes import themes
 
 
 class Rete(BaseComponent):
@@ -75,6 +76,9 @@ class Rete(BaseComponent):
 
         is_southern = settings['latitude'] < 0
         language = settings['language']
+        theme = themes[settings['theme']]
+
+        context.set_color(color=theme['lines'])
 
         context.set_font_size(1.0)
 
@@ -111,7 +115,7 @@ class Rete(BaseComponent):
         context.begin_path()
         context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_outer)
         context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_inner)
-        context.stroke(line_width=1, color=(0, 0, 0, 1))
+        context.stroke(line_width=1, color=theme['lines'])
 
         # Draw tick marks along ecliptic
         for theta in arange(0 * unit_deg, 359 * unit_deg, 2 * unit_deg):
@@ -203,7 +207,7 @@ class Rete(BaseComponent):
             context.begin_path()
             context.move_to(x=r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
             context.line_to(x=r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
-            context.stroke(dotted=True, line_width=1, color=(0.25, 0.25, 0.25, 1))
+            context.stroke(dotted=True, line_width=1, color=theme['stick_figures'])
 
         # Draw stars from Yale Bright Star Catalogue
         for star_descriptor in fetch_bright_star_list()['stars'].values():
@@ -230,7 +234,7 @@ class Rete(BaseComponent):
             context.begin_path()
             context.circle(centre_x=r * cos(ra * unit_deg), centre_y=-r * sin(ra * unit_deg),
                            radius=0.18 * unit_mm * (5 - mag))
-            context.fill(color=(0, 0, 0, 1))
+            context.fill(color=theme['lines'])
 
         # Draw RA scale
         r_tick = r_2 * 0.98
@@ -241,7 +245,7 @@ class Rete(BaseComponent):
             context.begin_path()
             context.move_to(x=-r_2 * cos(theta), y=-r_2 * sin(theta))
             context.line_to(x=-r_tick * cos(theta), y=-r_tick * sin(theta))
-            context.stroke(dotted=False, line_width=1, color=(0, 0, 0, 1))
+            context.stroke(dotted=False, line_width=1, color=theme['lines'])
 
             context.text(text="{:.0f}ʰ".format(ra),
                          x=r_tick * cos(theta), y=-r_tick * sin(theta),

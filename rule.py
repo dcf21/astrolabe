@@ -26,6 +26,7 @@ from math import sin, tan
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12
 from graphics_context import BaseComponent
 from settings import fetch_command_line_arguments
+from themes import themes
 
 
 class Rule(BaseComponent):
@@ -68,6 +69,9 @@ class Rule(BaseComponent):
         """
 
         is_southern = settings['latitude'] < 0
+        theme = themes[settings['theme']]
+
+        context.set_color(color=theme['lines'])
 
         margin = 2 * unit_cm
 

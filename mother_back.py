@@ -28,6 +28,7 @@ from graphics_context import BaseComponent
 from numpy import arange
 from settings import fetch_command_line_arguments
 from text import text
+from themes import themes
 import calendar
 import scipy.interpolate
 
@@ -75,6 +76,9 @@ class MotherBack(BaseComponent):
         """
 
         language = settings['language']
+        theme = themes[settings['theme']]
+
+        context.set_color(color=theme['lines'])
 
         # Radii of circles to be drawn on back of mother
         r_2 = r_1 - d_12
@@ -514,7 +518,7 @@ class MotherBack(BaseComponent):
             context.stroke()
 
         # Finish up
-        context.set_color(r=0, g=0, b=0)
+        context.set_color(color=theme['text'])
         context.circular_text(text=text[language]['copyright'], centre_x=0, centre_y=0, radius=r_12 - 2 * unit_mm,
                               azimuth=270, spacing=1, size=0.7)
 

@@ -1,0 +1,7 @@
+version: '3'
+services:
+  python:
+    build: .
+    volumes:
+    - .:/code
+    command: ./main_astrolabe.sh --theme default

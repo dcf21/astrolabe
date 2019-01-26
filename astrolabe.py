@@ -36,10 +36,14 @@ from mother_back import MotherBack
 from mother_front import MotherFront
 from rete import Rete
 from rule import Rule
+from settings import fetch_command_line_arguments
 
 # Create clean output directory
 os.system("rm -Rf output")
 os.system("mkdir -p output/astrolabes output/astrolabe_parts")
+
+arguments = fetch_command_line_arguments()
+theme = arguments['theme']
 
 # Render astrolabe in all available languages
 for language in text.text:
@@ -67,6 +71,7 @@ for language in text.text:
         settings = {
             'language': language,
             'latitude': latitude,
+            'theme': theme
         }
 
         # Render the parts of the astrolabe that do not change with geographic location

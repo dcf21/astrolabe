@@ -29,6 +29,7 @@ from graphics_context import BaseComponent
 from text import text
 from numpy import arange
 from settings import fetch_command_line_arguments
+from themes import themes
 
 
 class Climate(BaseComponent):
@@ -76,6 +77,9 @@ class Climate(BaseComponent):
         is_southern = settings['latitude'] < 0
         latitude = abs(settings['latitude'])
         language = settings['language']
+        theme = themes[settings['theme']]
+
+        context.set_color(color=theme['lines'])
 
         context.set_font_size(0.8)
 
@@ -149,7 +153,7 @@ class Climate(BaseComponent):
                 start = 180 * unit_deg - acos(
                     (r ** 2 + y ** 2 - r_2 ** 2) / (2 * ((y_b - y_a) / 2) * ((y_a + y_b) / 2)))
                 end = -start
-                if (altitude>0) and (altitude % 10 == 0):
+                if (altitude > 0) and (altitude % 10 == 0):
                     context.text(text="{:d}".format(altitude),
                                  x=r * sin(start + (r_2 / r) * 2 * unit_deg),
                                  y=-(y_a + y_b) / 2 - r * cos(start + (r_2 / r) * 3 * unit_deg),
@@ -166,7 +170,8 @@ class Climate(BaseComponent):
             context.begin_path()
             context.circle(centre_x=0, centre_y=-(y_a + y_b) / 2, radius=(y_b - y_a) / 2)
             context.stroke(dotted=(altitude < 0),
-                           line_width=0.6 + 1.2 * int(altitude == 0))
+                           line_width=0.6 + 1.2 * int(altitude == 0),
+                           color=theme['alt_az'] if altitude > 0 else theme['lines'])
 
         # Find coordinates of P
         theta = -latitude * unit_deg
@@ -225,9 +230,11 @@ class Climate(BaseComponent):
             context.begin_path()
             context.arc(centre_x=t_x, centre_y=-t_y, radius=t_r,
                         arc_from=max(start, start2) - pi / 2, arc_to=min(end, end2) - pi / 2)
-            context.stroke(line_width=0.5)
+            context.stroke(line_width=0.5,
+                           color=theme['alt_az'])
 
             context.set_font_style(bold=True)
+            context.set_color(theme['text'])
             if hypot(t_x + t_r * sin(end), t_y + t_r * cos(end)) < 0.9 * r_2:
                 context.text(text=direction,
                              x=t_x + t_r * sin(end), y=-t_y - t_r * cos(end),
@@ -292,7 +299,7 @@ class Climate(BaseComponent):
                 context.begin_path()
                 context.move_to(x=r0 * sin(psi0), y=-r0 * cos(psi0))
                 context.line_to(x=r1 * sin(psi1), y=-r1 * cos(psi1))
-                context.stroke(line_width=1, dotted=False)
+                context.stroke(line_width=1, dotted=False, color=theme['lines'])
 
         # Label the unequal hours
         context.set_font_size(1.6)
