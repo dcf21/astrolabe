@@ -77,10 +77,18 @@ class MotherFront(BaseComponent):
 
         context.set_color(color=theme['lines'])
 
-        # Radii of circles to be drawn on front of mother
+        # Define the radii of all the concentric circles to be drawn on front of mother
+
+        # Scale of letters around the edge
         r_2 = r_1 - d_12 * 1.5
+
+        # Protractor scale
         r_3 = r_2 - d_12
+
+        # Fine divisions
         r_4 = r_3 - d_12 / 2
+
+        # Central hole
         r_5 = d_12 * centre_scaling
 
         # Draw the handle at the top of the astrolabe
@@ -93,26 +101,15 @@ class MotherFront(BaseComponent):
         context.stroke()
 
         # Draw circles 1-5 onto front of mother
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_1)
-        context.stroke()
+        for radius in (r_1, r_2, r_3, r_5):
+            context.begin_path()
+            context.circle(centre_x=0, centre_y=0, radius=radius)
+            context.stroke()
 
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_2)
-        context.stroke()
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_3)
-        context.stroke()
-
-        # Circle four has tab cut out
+        # Circle 4 has tab cut out
         context.begin_path()
         context.arc(centre_x=0, centre_y=0, radius=r_4,
                     arc_from=tab_size - pi / 2, arc_to=360 * unit_deg - tab_size - pi / 2)
-        context.stroke()
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_5)
         context.stroke()
 
         # Between circles 2 and 4, mark 5-degree intervals
@@ -130,8 +127,9 @@ class MotherFront(BaseComponent):
             context.stroke()
 
         # Between circles 2 and 3, label every 10 degrees
-        rt_1 = (r_2 + r_3) / 2
+        rt_1 = (r_2 + r_3) / 2  # Radius at which to place text labels every 10 degrees
         for theta in arange(-180 * unit_deg, 179 * unit_deg, 10 * unit_deg):
+            # Work out angle to display around the rim: counts from 0 to 90 four times, not -180 to 180 degrees!
             if theta < -179 * unit_deg:
                 theta_disp = theta
             elif theta < - 90 * unit_deg:
@@ -143,21 +141,27 @@ class MotherFront(BaseComponent):
             else:
                 theta_disp = -theta + 180 * unit_deg
 
+            # Display angles around rim as rounded integers
             theta_disp = floor(theta_disp / unit_deg + 0.01)
 
             context.set_font_size(1.2)
 
+            # Display right-hand zero as a simple one-digit zero
             if theta_disp == 0:
                 theta2 = theta
                 context.text(text="0",
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+
+            # Display a cross sign at the left-hand zero
             elif theta_disp == -180:
                 theta2 = theta
                 context.set_font_size(2.1)
                 context.text(text="\u2720",
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+
+            # Display all other angles as two digits, carefully arranged with one digit on either side of the line
             else:
                 theta2 = theta - 0.2 * unit_deg
                 context.text(text="{:.0f}".format(theta_disp / 10),
@@ -173,6 +177,8 @@ class MotherFront(BaseComponent):
         for i, t in enumerate(["\u2720", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N",
                                "O", "P", "Q", "R", "S", "T", "U", "X", "Y", "Z"]):
             theta = i / 24 * unit_rev
+
+            # Letters are reversed in the southern hemisphere
             if is_southern:
                 theta = -theta
 

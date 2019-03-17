@@ -21,14 +21,13 @@
 Render the climate of the astrolabe.
 """
 
-import re
 from math import pi, sin, tan, cos, atan2, hypot, acos
 
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12, tab_size
 from graphics_context import BaseComponent
-from text import text
 from numpy import arange
 from settings import fetch_command_line_arguments
+from text import text
 from themes import themes
 
 
@@ -83,6 +82,8 @@ class Climate(BaseComponent):
 
         context.set_font_size(0.8)
 
+        # Define the radii of all the concentric circles drawn on front of mother
+
         # The radius of the tab at the top of climate, relative to the centre of the astrolabe
         r_tab = r_1 - d_12 * 2.5 - unit_mm
 
@@ -92,10 +93,13 @@ class Climate(BaseComponent):
         # Radius of central hole
         r_3 = d_12 * centre_scaling
 
+        # Radius of the line denoting the equator
         r_4 = r_2 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
+
+        # Radius of the line denoting the tropic of Cancer
         r_5 = r_4 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
 
-        # Draw the outer edge of climate
+        # Draw the outer edge of climate, and the central hole, and use these to create a clipping region
         context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_2)
         context.begin_sub_path()
@@ -123,8 +127,10 @@ class Climate(BaseComponent):
         context.line_to(x=-r_2 * sin(tab_size), y=-r_2 * cos(tab_size))
         context.stroke()
 
+        # The maths involved in drawing the climate is described in this paper:
+        # http://adsabs.harvard.edu/abs/1976JBAA...86..125E
+
         # Draw lines of constant altitude
-        context.set_font_style(bold=True)
         for altitude in [-6, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85]:
             theta1 = (-latitude - (90 - altitude)) * unit_deg
             theta2 = (-latitude + (90 - altitude)) * unit_deg
@@ -142,9 +148,10 @@ class Climate(BaseComponent):
                 horizon_centre = (y_a + y_b) / 2
                 horizon_radius = (y_b - y_a) / 2
 
+            context.set_font_style(bold=True)
+            context.set_color(theme['text'])
+
             if y_b < r_2:
-                start = 0
-                end = 360 * unit_deg
                 if (altitude % 10) == 0:
                     context.text(text="{:d}".format(altitude), x=0, y=-y_b, h_align=0, v_align=1, gap=0, rotation=0)
             else:
@@ -193,19 +200,26 @@ class Climate(BaseComponent):
         t_x = 0
         t_y = zh_y + zh_x * tan(theta)
 
-        # Draw lines of constant azimuth
-        ss = 11.25 * unit_deg
-        altitude = -90 * unit_deg + ss
-        for direction in ["", "NNW", "", "NW", "", "WNW", "", "W", "", "WSW", "", "SW", "", "SSW", ""]:
-            if is_southern:
-                direction = re.sub("N", "s", direction)
-                direction = re.sub("S", "N", direction)
-                direction = re.sub("s", "S", direction)
-                direction = re.sub("W", "e", direction)
-                direction = re.sub("E", "W", direction)
-                direction = re.sub("e", "E", direction)
+        # Draw lines of constant azimuth. We draw 16 arcs at 11.25 degree intervals, which cut through the zenith
+        # and meet the horizon in two opposite compass bearings. For this reason we only draw half as many arcs as
+        # there are compass bearings
+        step_size = 11.25 * unit_deg
+        for azimuth_step in range(1, 16):
+            azimuth = -90 * unit_deg + step_size * azimuth_step
 
-            t_x = (z_y - t_y) * tan(altitude)
+            # Compass direction for the start and end of the line of constant azimuth. Each line of constant azimuth
+            # meets the horizon at two opposite points, with opposite compass directions.
+            if (azimuth_step % 2) != 0:
+                direction_start, direction_end = ("", "")
+            else:
+                direction_start = text[language]['directions'][azimuth_step // 2]
+                direction_end = text[language]['directions'][azimuth_step // 2 + 8]
+
+            # In southern hemisphere, invert directions
+            if is_southern:
+                direction_start, direction_end = (direction_end, direction_start)
+
+            t_x = (z_y - t_y) * tan(azimuth)
 
             # Radius of arc of constant azimuth
             t_r = hypot(t_x, t_y - z_y)
@@ -236,91 +250,96 @@ class Climate(BaseComponent):
             context.set_font_style(bold=True)
             context.set_color(theme['text'])
             if hypot(t_x + t_r * sin(end), t_y + t_r * cos(end)) < 0.9 * r_2:
-                context.text(text=direction,
+                context.text(text=direction_start,
                              x=t_x + t_r * sin(end), y=-t_y - t_r * cos(end),
                              h_align=0, v_align=1, gap=unit_mm,
                              rotation=end - 90 * unit_deg)
             else:
-                context.text(text=direction,
+                context.text(text=direction_start,
                              x=t_x + t_r * sin(min(end, end2) - (r_2 / t_r) * 8 * unit_deg),
                              y=-t_y - t_r * cos(min(end, end2) - (r_2 / t_r) * 8 * unit_deg),
                              h_align=0, v_align=0, gap=0,
                              rotation=(min(end, end2) - (r_2 / t_r) * 8 * unit_deg))
 
-            direction = re.sub("N", "s", direction)
-            direction = re.sub("S", "N", direction)
-            direction = re.sub("s", "S", direction)
-            direction = re.sub("W", "e", direction)
-            direction = re.sub("E", "W", direction)
-            direction = re.sub("e", "E", direction)
-
             if hypot(t_x + t_r * sin(start), t_y + t_r * cos(start)) < 0.9 * r_2:
-                context.text(text=direction,
+                context.text(text=direction_end,
                              x=t_x + t_r * sin(start),
                              y=-t_y - t_r * cos(start),
                              h_align=0, v_align=1, gap=unit_mm,
                              rotation=90 * unit_deg + start)
             else:
-                context.text(text=direction,
+                context.text(text=direction_end,
                              x=t_x + t_r * sin(max(start, start2) + (r_2 / t_r) * 8 * unit_deg),
                              y=-t_y - t_r * cos(max(start, start2) + (r_2 / t_r) * 8 * unit_deg),
                              h_align=0, v_align=0, gap=0,
                              rotation=(max(start, start2) + (r_2 / t_r) * 8 * unit_deg))
 
-            altitude = altitude + ss
-
-        if not is_southern:
-            context.text(text="N",
-                         x=0, y=-horizon_centre + horizon_radius,
-                         h_align=0, v_align=1, gap=unit_mm, rotation=0)
-        else:
-            context.text(text="S",
-                         x=0, y=-horizon_centre + horizon_radius,
-                         h_align=0, v_align=1, gap=unit_mm, rotation=0)
+        context.text(text="N" if not is_southern else "S",
+                     x=0, y=-horizon_centre + horizon_radius,
+                     h_align=0, v_align=1, gap=unit_mm, rotation=0)
 
         # Subroutine for calculating the azimuthal angle of the lines of the unequal hours
-        def theta_unequal_hours(r):
-            arg = (r ** 2 + horizon_centre ** 2 - horizon_radius ** 2) / (2 * r * horizon_centre)
-            if arg <= -1:
-                return 180 * unit_deg
-            if arg >= 1:
-                return 0 * unit_deg
-            return acos(arg)
+        if settings['astrolabe_type'] == 'full':
+            # Subroutine for calculating the azimuthal angle of the lines of the unequal hours
+            def theta_unequal_hours(r):
+                arg = (r ** 2 + horizon_centre ** 2 - horizon_radius ** 2) / (2 * r * horizon_centre)
+                if arg <= -1:
+                    return 180 * unit_deg
+                if arg >= 1:
+                    return 0 * unit_deg
+                return acos(arg)
 
-        # Draw lines of unequal hours below the horizon
-        for h in range(1, 12):
-            for r in arange(max(r_5, horizon_radius - horizon_centre), r_2 + 0.05 * unit_mm, 0.5 * unit_mm):
-                r0 = r
-                r1 = min(r + 0.5 * unit_mm, r_2)
-                theta0 = theta_unequal_hours(r0)
-                theta1 = theta_unequal_hours(r1)
-                psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
-                psi1 = theta1 + (360 * unit_deg - 2 * theta1) / 12 * h
-                context.begin_path()
-                context.move_to(x=r0 * sin(psi0), y=-r0 * cos(psi0))
-                context.line_to(x=r1 * sin(psi1), y=-r1 * cos(psi1))
-                context.stroke(line_width=1, dotted=False, color=theme['lines'])
+            # Draw lines of unequal hours in turn
+            for h in range(1, 12):
+                for r in arange(max(r_5, horizon_radius - horizon_centre), r_2 + 0.05 * unit_mm, 0.5 * unit_mm):
+                    r0 = r
+                    r1 = min(r + 0.5 * unit_mm, r_2)
+                    theta0 = theta_unequal_hours(r0)
+                    theta1 = theta_unequal_hours(r1)
+                    psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
+                    psi1 = theta1 + (360 * unit_deg - 2 * theta1) / 12 * h
+                    context.begin_path()
+                    context.move_to(x=r0 * sin(psi0), y=-r0 * cos(psi0))
+                    context.line_to(x=r1 * sin(psi1), y=-r1 * cos(psi1))
+                    context.stroke(line_width=1, dotted=False, color=theme['lines'])
 
-        # Label the unequal hours
-        context.set_font_size(1.6)
-        h = 0.5
-        r = r_2 - 4 * unit_mm
-        theta0 = theta_unequal_hours(r)
-        context.set_font_style(bold=False)
-        for hr in ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]:
-            psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
-            psi0 = (psi0 - 180 * unit_deg) * 0.95 + 180 * unit_deg
-            context.text(text=hr,
-                         x=r * sin(psi0), y=-r * cos(psi0),
-                         h_align=0, v_align=0, gap=unit_mm,
-                         rotation=180 * unit_deg + psi0)
-            h = h + 1
+            # Label the unequal hours
+            context.set_font_size(1.6)
+            r = r_2 - 4 * unit_mm
+            theta0 = theta_unequal_hours(r)
+            context.set_font_style(bold=False)
+            for pos, hr in enumerate(["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]):
+                psi0 = theta0 + (360 * unit_deg - 2 * theta0) / 12 * (pos + 0.5)
+                psi0 = (psi0 - 180 * unit_deg) * 0.95 + 180 * unit_deg
+                context.text(text=hr,
+                             x=r * sin(psi0), y=-r * cos(psi0),
+                             h_align=0, v_align=0, gap=unit_mm,
+                             rotation=180 * unit_deg + psi0)
 
-        # White out r_3
+        # A space to write the owner's name
+        if settings['astrolabe_type'] != 'full':
+            arc_size = 40 * unit_deg
+            context.begin_path()
+            context.move_to(x=r_2 * sin(arc_size), y=r_2 * cos(arc_size))
+            context.arc(centre_x=0, centre_y=0,
+                        radius=r_2 - 0.8 * unit_cm,
+                        arc_from=90 * unit_deg - arc_size,
+                        arc_to=90 * unit_deg + arc_size
+                        )
+            context.line_to(x=-r_2 * sin(arc_size), y=r_2 * cos(arc_size))
+            context.stroke(line_width=1, dotted=False)
+
+            context.circular_text(text="{}:".format(text[language]['name']),
+                                  centre_x=0, centre_y=0,
+                                  radius=r_2 - 0.4 * unit_cm,
+                                  azimuth=238,
+                                  spacing=1, size=1.2)
+
+        # Draw horizontal and vertical lines through the middle of the climate
         context.begin_path()
         context.move_to(x=-r_2, y=0)
         context.line_to(x=r_2, y=0)
-        context.move_to(x=0, y=r_2)
+        context.move_to(x=0, y=r_2 if settings['astrolabe_type'] == 'full' else r_4)
         context.line_to(x=0, y=-r_2)
         context.stroke(line_width=1, dotted=False)
 

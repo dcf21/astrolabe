@@ -80,18 +80,32 @@ class MotherBack(BaseComponent):
 
         context.set_color(color=theme['lines'])
 
-        # Radii of circles to be drawn on back of mother
+        # Define the radii of all the concentric circles to be drawn on back of mother
+
+        # Scale of angles around the rim of the astrolabe
         r_2 = r_1 - d_12
         r_3 = r_2 - d_12 / 2
+
+        # Zodiacal constellations
         r_4 = r_3 - d_12
         r_5 = r_4 - d_12
+
+        # Calendar for 1394
         r_6 = r_5 - d_12
         r_7 = r_6 - d_12
+
+        # Days of the year
         r_8 = r_7 - d_12 / 2
+
+        # Calendar for 1974
         r_9 = r_8 - d_12
         r_10 = r_9 - d_12
+
+        # Saints' days
         r_11 = r_10 - d_12
         r_12 = r_11 - d_12
+
+        # Radius of the central hole
         r_13 = d_12 * centre_scaling
 
         # Draw the handle at the top of the astrolabe
@@ -111,53 +125,11 @@ class MotherBack(BaseComponent):
         context.stroke(line_width=1)
         context.clip()
 
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_2)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_3)
-        context.stroke(line_width=3)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_4)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_5)
-        context.stroke(line_width=3)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_6)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_7)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_8)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_9)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_10)
-        context.stroke(line_width=3)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_11)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_12)
-        context.stroke(line_width=1)
-
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=0, radius=r_13)
-        context.stroke(line_width=1)
+        for radius, line_width in ((r_2, 1), (r_3, 3), (r_4, 1), (r_5, 3), (r_6, 1), (r_7, 1), (r_8, 1), (r_9, 1),
+                                   (r_10, 3), (r_11, 1), (r_12, 1), (r_13, 1)):
+            context.begin_path()
+            context.circle(centre_x=0, centre_y=0, radius=radius)
+            context.stroke(line_width=line_width)
 
         # Label space between circles 1-5 with passage of Sun through zodiacal constellations
 
@@ -168,7 +140,7 @@ class MotherBack(BaseComponent):
             context.line_to(x=r_5 * cos(theta), y=-r_5 * sin(theta))
             context.stroke()
 
-        # Mark five degree intervals within each zodiacal constellation
+        # Mark 5-degree intervals within each zodiacal constellation
         for theta in arange(0 * unit_deg, 359 * unit_deg, 5 * unit_deg):
             context.begin_path()
             context.move_to(x=r_1 * cos(theta), y=-r_1 * sin(theta))
@@ -182,13 +154,13 @@ class MotherBack(BaseComponent):
             context.line_to(x=r_3 * cos(theta), y=-r_3 * sin(theta))
             context.stroke()
 
-        # Between circles 3 and 4 mark each constellation 10, 20, 30 degrees
-        # Also, between circles 1 and 2, surround entire astrolabe with 0, 10, .. 90 degrees
+        # Between circles 1 and 2, surround the entire astrolabe with a protractor scale from 0 to 90 degrees
 
+        # Radius from centre for writing the text of the protractor scale around the rim
         rt_1 = (r_1 + r_2) / 2
-        rt_2 = (r_3 + r_4) / 2
 
         for theta in arange(-180 * unit_deg, 179 * unit_deg, 10 * unit_deg):
+            # Work out angle to display around the rim: counts from 0 to 90 four times, not -180 to 180 degrees!
             if theta < -179 * unit_deg:
                 theta_disp = theta
             elif theta < - 90 * unit_deg:
@@ -200,21 +172,27 @@ class MotherBack(BaseComponent):
             else:
                 theta_disp = -theta + 180 * unit_deg
 
+            # Display angles around rim as rounded integers
             theta_disp = floor(theta_disp / unit_deg + 0.01)
 
             context.set_font_size(1.2)
 
+            # Display right-hand zero as a simple one-digit zero
             if theta_disp == 0:
                 theta2 = theta
                 context.text(text="0",
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+
+            # Display a cross sign at the left-hand zero
             elif theta_disp == -180:
                 theta2 = theta
                 context.set_font_size(2.1)
                 context.text(text="\u2720",
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+
+            # Display all other angles as two digits, carefully arranged with one digit on either side of the line
             else:
                 theta2 = theta - 0.2 * unit_deg
                 context.text(text="{:.0f}".format(theta_disp / 10),
@@ -225,8 +203,17 @@ class MotherBack(BaseComponent):
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
+        # Between circles 3 and 4, mark 10-, 20-, 30-degree points within each zodiacal constellation
+
+        # Radius for writing the 30 degree scales within each zodiacal constellation
+        rt_2 = (r_3 + r_4) / 2
+
+        for theta in arange(-180 * unit_deg, 179 * unit_deg, 10 * unit_deg):
             context.set_font_size(1.2)
+            # Work out what angle to display, which is rotation angle modulo 30 degrees
             theta_disp = floor(theta / unit_deg + 380.01) % 30 + 10
+
+            # Write two digits separately, with a slight gap between them for the dividing line they label
             theta2 = theta - 0.2 * unit_deg
             context.text(text="{:.0f}".format(theta_disp / 10),
                          x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
@@ -236,7 +223,7 @@ class MotherBack(BaseComponent):
                          x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
                          h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
-        # Write names of zodiacal constellations
+        # Write names of zodiacal constellations between circles 4 and 5
         for i, item in enumerate(text[language]["zodiacal_constellations"]):
             i += 1
             name = "{} {}".format(item['name'], item['symbol'])
@@ -247,9 +234,12 @@ class MotherBack(BaseComponent):
 
         # Between circles 5 and 10, display calendars for 1394 and 1974
 
-        # Produce functions which interpolate the Tuckerman tables
-        x_1394 = []
-        y_1394 = []
+        # The Tuckerman tables provide the longitude of the Sun along the ecliptic on any given day of the year.
+        # We produce functions which interpolate the tabulated longitudes, so that we can look up the longitude
+        # of the Sun at any moment in time.
+
+        x_1394 = []  # List of Julian day numbers of supplied data points
+        y_1394 = []  # List of solar longitude values for each data point
         x_1974 = []
         y_1974 = []
         for line in open("raw_data/tuckerman.dat", "rt"):
@@ -270,15 +260,17 @@ class MotherBack(BaseComponent):
             y_1394.append(30 * unit_deg * (columns[4] - 1) + columns[5] * unit_deg)
             y_1974.append(30 * unit_deg * (columns[6] - 1) + columns[7] * unit_deg)
 
+        # Use scipy to do linear interpolation between the supplied data
         theta_1394 = scipy.interpolate.interp1d(x=x_1394, y=y_1394, kind='linear')
         theta_1974 = scipy.interpolate.interp1d(x=x_1974, y=y_1974, kind='linear')
 
-        # Use Tuckerman table to mark 365 days around calendar.
+        # Mark 365 days around calendar using the solar longitude data we have.
         # Write numbers on the 10th, 20th and last day of each month
 
-        rt_1 = (r_6 + r_7) / 2
-        rt_2 = (r_8 + r_9) / 2
-        last_theta = 30 * unit_deg * (10 - 1) + 9.4 * unit_deg
+        rt_1 = (r_6 + r_7) / 2  # Radius of text for the 1394 calendar
+        rt_2 = (r_8 + r_9) / 2  # Radius of text for the 1974 calendar
+
+        prev_theta = 30 * unit_deg * (10 - 1) + 9.4 * unit_deg
 
         for line in open("raw_data/tuckerman.dat"):
             line = line.strip()
@@ -289,19 +281,21 @@ class MotherBack(BaseComponent):
 
             m, d, interval, last, z1394, a1394, z1974, a1974 = [float(i) for i in line.split()]
 
+            # *** Calendar for 1974 ***
+
             # Work out azimuth of given date in 1974 calendar
             theta = 30 * unit_deg * (z1974 - 1) + a1974 * unit_deg
 
             # Interpolate interval into number of days since last data point in table (normally five)
-            if last_theta > theta:
-                last_theta = last_theta - unit_rev
+            if prev_theta > theta:
+                prev_theta = prev_theta - unit_rev
             for i in arange(0, interval - 0.1):
-                theta_day = last_theta + (theta - last_theta) * (i + 1) / interval
+                theta_day = prev_theta + (theta - prev_theta) * (i + 1) / interval
                 context.begin_path()
                 context.move_to(x=r_7 * cos(theta_day), y=-r_7 * sin(theta_day))
                 context.line_to(x=r_8 * cos(theta_day), y=-r_8 * sin(theta_day))
                 context.stroke()
-            last_theta = theta
+            prev_theta = theta
 
             # Draw a marker line on calendar. Month ends get longer markers
             if last:
@@ -327,44 +321,52 @@ class MotherBack(BaseComponent):
                              x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
                              h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
-            # Work out azimuth of given date in 1394 calendar
-            theta = 30 * unit_deg * (z1394 - 1) + a1394 * unit_deg
-            if last:
-                context.begin_path()
-                context.move_to(x=r_5 * cos(theta), y=-r_5 * sin(theta))
-                context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
-                context.stroke()
-            else:
-                context.begin_path()
-                context.move_to(x=r_6 * cos(theta), y=-r_6 * sin(theta))
-                context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
-                context.stroke()
+            # *** Calendar for 1394 ***
 
-            # Label 10th and 20th day of month, and last day of month
-            if ((d % 10) == 0) or (d > 26):
-                context.set_font_size(0.75)
-                theta2 = theta - 0.2 * unit_deg
-                context.text(text="{:.0f}".format(d / 10),
-                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
-                             h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
-                theta2 = theta + 0.2 * unit_deg
-                context.text(text="{:.0f}".format(d % 10),
-                             x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
-                             h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+            # Work out azimuth of given date in 1394 calendar
+            if settings['astrolabe_type'] == 'full':
+                theta = 30 * unit_deg * (z1394 - 1) + a1394 * unit_deg
+                if last:
+                    context.begin_path()
+                    context.move_to(x=r_5 * cos(theta), y=-r_5 * sin(theta))
+                    context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                    context.stroke()
+                else:
+                    context.begin_path()
+                    context.move_to(x=r_6 * cos(theta), y=-r_6 * sin(theta))
+                    context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                    context.stroke()
+
+                # Label 10th and 20th day of month, and last day of month
+                if ((d % 10) == 0) or (d > 26):
+                    context.set_font_size(0.75)
+                    theta2 = theta - 0.2 * unit_deg
+                    context.text(text="{:.0f}".format(d / 10),
+                                 x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                                 h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+                    theta2 = theta + 0.2 * unit_deg
+                    context.text(text="{:.0f}".format(d % 10),
+                                 x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                                 h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
         # Label names of months
         for mn, (mlen, name) in enumerate(text[language]['months']):
-            theta = theta_1974(calendar.julian_day(year=1974, month=mn + 1, day=mlen // 2, hour=12, minute=0, sec=0))
+            theta = theta_1974(
+                calendar.julian_day(year=1974, month=mn + 1, day=mlen // 2, hour=12, minute=0, sec=0)
+            )
             context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_9 * 0.65 + r_10 * 0.35,
                                   azimuth=theta / unit_deg,
                                   spacing=1, size=0.9)
 
-            theta = theta_1394(calendar.julian_day(year=1394, month=mn + 1, day=mlen // 2, hour=12, minute=0, sec=0))
-            context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_5 * 0.65 + r_6 * 0.35,
-                                  azimuth=theta / unit_deg,
-                                  spacing=1, size=0.75)
+            if settings['astrolabe_type'] == 'full':
+                theta = theta_1394(
+                    calendar.julian_day(year=1394, month=mn + 1, day=mlen // 2, hour=12, minute=0, sec=0)
+                )
+                context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_5 * 0.65 + r_6 * 0.35,
+                                      azimuth=theta / unit_deg,
+                                      spacing=1, size=0.75)
 
-        # Add significant dates between circles 10 and 12
+        # Add dates of saints days between circles 10 and 12
         context.set_font_size(1.0)
         for line in open("raw_data/saints_days.dat"):
             line = line.strip()
@@ -387,135 +389,170 @@ class MotherBack(BaseComponent):
                                   spacing=1, size=1)
 
         # Shadow scale in middle of astrolabe
-        context.begin_path()
-
-        theta_a = 0 * unit_deg
-        context.move_to(x=r_12 * cos(theta_a), y=-r_12 * sin(theta_a))
-        context.line_to(x=r_13 * cos(theta_a), y=-r_13 * sin(theta_a))
-
-        theta_b = - 45 * unit_deg
-        context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
-        context.line_to(x=r_13 * cos(theta_b), y=-r_13 * sin(theta_b))
-
-        theta_c = -135 * unit_deg
-        context.move_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
-        context.line_to(x=r_13 * cos(theta_c), y=-r_13 * sin(theta_c))
-
-        theta_d = 180 * unit_deg
-        context.move_to(x=r_12 * cos(theta_d), y=-r_12 * sin(theta_d))
-        context.line_to(x=r_13 * cos(theta_d), y=-r_13 * sin(theta_d))
-        context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
-        context.line_to(x=r_12 * cos(theta_b), y=0)
-        context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
-        context.line_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
-        context.move_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
-        context.line_to(x=r_12 * cos(theta_c), y=0)
-        context.move_to(x=0, y=-r_12 * sin(theta_c))
-        context.line_to(x=0, y=r_13)
-        context.move_to(x=0, y=-r_12)
-        context.line_to(x=0, y=-r_13)
-
-        rs1 = r_12 - 0.75 * d_12 / 2
-        rs2 = rs1 - 0.75 * d_12
-        context.move_to(x=rs1 * cos(theta_b), y=-rs1 * sin(theta_b))
-        context.line_to(x=rs1 * cos(theta_b), y=0)
-        context.move_to(x=rs1 * cos(theta_b), y=-rs1 * sin(theta_b))
-        context.line_to(x=rs1 * cos(theta_c), y=-rs1 * sin(theta_c))
-        context.move_to(x=rs1 * cos(theta_c), y=-rs1 * sin(theta_c))
-        context.line_to(x=rs1 * cos(theta_c), y=0)
-        context.move_to(x=rs2 * cos(theta_b), y=-rs2 * sin(theta_b))
-        context.line_to(x=rs2 * cos(theta_b), y=0)
-        context.move_to(x=rs2 * cos(theta_b), y=-rs2 * sin(theta_b))
-        context.line_to(x=rs2 * cos(theta_c), y=-rs2 * sin(theta_c))
-        context.move_to(x=rs2 * cos(theta_c), y=-rs2 * sin(theta_c))
-        context.line_to(x=rs2 * cos(theta_c), y=0)
-
-        context.stroke()
-
-        context.set_font_size(0.64)
-        context.text(text="UMBRA", x=-1 * unit_mm, y=-rs2 * sin(theta_c), h_align=1, v_align=-1, gap=0.7 * unit_mm,
-                     rotation=0)
-        context.text(text="UMBRA", x=rs2 * cos(theta_c), y=unit_mm, h_align=-1, v_align=-1, gap=0.7 * unit_mm,
-                     rotation=pi / 2)
-        context.text(text="RECTA", x=1 * unit_mm, y=-rs2 * sin(theta_c), h_align=-1, v_align=-1, gap=0.7 * unit_mm,
-                     rotation=0)
-        context.text(text="VERSA", x=rs2 * cos(theta_b), y=unit_mm, h_align=1, v_align=-1, gap=0.7 * unit_mm,
-                     rotation=-pi / 2)
-        context.text(text="ORIENS", x=-r_12 * 0.95, y=0, h_align=-1, v_align=-1, gap=0.8 * unit_mm, rotation=0)
-        context.text(text="OCCIDENS", x=r_12 * 0.95, y=0, h_align=1, v_align=-1, gap=0.8 * unit_mm, rotation=0)
-
-        r_label = (rs1 + rs2) / 2
-        offset = 5 * unit_deg
-
-        # Divisions of scale
-        q = 90 * unit_deg
-        for i in range(1, 12):
-            rs = rs2 if (i % 4 == 0) else rs1
-            theta = -atan(i / 12)
+        if settings['astrolabe_type'] == 'full':
             context.begin_path()
-            context.move_to(x=rs * cos(theta_b), y=-rs * cos(theta_b) * tan(theta))
-            context.line_to(x=r_12 * cos(theta_b), y=-r_12 * cos(theta_b) * tan(theta))
+
+            # Draw horizontal radial line labelled Occidens
+            theta_a = 0 * unit_deg
+            context.move_to(x=r_12 * cos(theta_a), y=-r_12 * sin(theta_a))
+            context.line_to(x=r_13 * cos(theta_a), y=-r_13 * sin(theta_a))
+
+            # Radial line between RECTA and VERSA
+            theta_b = - 45 * unit_deg
+            context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
+            context.line_to(x=r_13 * cos(theta_b), y=-r_13 * sin(theta_b))
+
+            # Radial line between UMBRA and UMBRA
+            theta_c = -135 * unit_deg
+            context.move_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
+            context.line_to(x=r_13 * cos(theta_c), y=-r_13 * sin(theta_c))
+
+            # Draw horizontal radial line labelled Oriens
+            theta_d = 180 * unit_deg
+            context.move_to(x=r_12 * cos(theta_d), y=-r_12 * sin(theta_d))
+            context.line_to(x=r_13 * cos(theta_d), y=-r_13 * sin(theta_d))
+
+            # Vertical line at right edge of shadow scale
+            context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
+            context.line_to(x=r_12 * cos(theta_b), y=0)
+
+            # Horizontal line along bottom of shadow scale
+            context.move_to(x=r_12 * cos(theta_b), y=-r_12 * sin(theta_b))
+            context.line_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
+
+            # Vertical line at left edge of shadow scale
+            context.move_to(x=r_12 * cos(theta_c), y=-r_12 * sin(theta_c))
+            context.line_to(x=r_12 * cos(theta_c), y=0)
+
+            # Central vertical line down middle of shadow scale
+            context.move_to(x=0, y=-r_12 * sin(theta_c))
+            context.line_to(x=0, y=r_13)
+            context.move_to(x=0, y=-r_12)
+            context.line_to(x=0, y=-r_13)
+
+            rs1 = r_12 - 0.75 * d_12 / 2  # Radius of corners of fine shadow scale
+
+            rs2 = rs1 - 0.75 * d_12  # Radius of corners of coarse shadow scale
+
+            # Draw horizontal and vertical sides of the fine and coarse shadow scales
+            context.move_to(x=rs1 * cos(theta_b), y=-rs1 * sin(theta_b))
+            context.line_to(x=rs1 * cos(theta_b), y=0)
+            context.move_to(x=rs1 * cos(theta_b), y=-rs1 * sin(theta_b))
+            context.line_to(x=rs1 * cos(theta_c), y=-rs1 * sin(theta_c))
+            context.move_to(x=rs1 * cos(theta_c), y=-rs1 * sin(theta_c))
+            context.line_to(x=rs1 * cos(theta_c), y=0)
+            context.move_to(x=rs2 * cos(theta_b), y=-rs2 * sin(theta_b))
+            context.line_to(x=rs2 * cos(theta_b), y=0)
+            context.move_to(x=rs2 * cos(theta_b), y=-rs2 * sin(theta_b))
+            context.line_to(x=rs2 * cos(theta_c), y=-rs2 * sin(theta_c))
+            context.move_to(x=rs2 * cos(theta_c), y=-rs2 * sin(theta_c))
+            context.line_to(x=rs2 * cos(theta_c), y=0)
+
             context.stroke()
 
-            if i % 4 == 0:
-                context.text(text="{:d}".format(i),
-                             x=r_label * cos(theta_b), y=-r_label * cos(theta_b) * tan(theta - offset),
-                             h_align=0, v_align=0, gap=0, rotation=-q - theta)
+            # Write the UMBRA and VERSA labels on the shadow scale
+            context.set_font_size(0.64)
+            context.text(text="UMBRA", x=-1 * unit_mm, y=-rs2 * sin(theta_c), h_align=1, v_align=-1, gap=0.7 * unit_mm,
+                         rotation=0)
+            context.text(text="UMBRA", x=rs2 * cos(theta_c), y=unit_mm, h_align=-1, v_align=-1, gap=0.7 * unit_mm,
+                         rotation=pi / 2)
+            context.text(text="RECTA", x=1 * unit_mm, y=-rs2 * sin(theta_c), h_align=-1, v_align=-1, gap=0.7 * unit_mm,
+                         rotation=0)
+            context.text(text="VERSA", x=rs2 * cos(theta_b), y=unit_mm, h_align=1, v_align=-1, gap=0.7 * unit_mm,
+                         rotation=-pi / 2)
+            context.text(text="ORIENS", x=-r_12 * 0.95, y=0, h_align=-1, v_align=-1, gap=0.8 * unit_mm, rotation=0)
+            context.text(text="OCCIDENS", x=r_12 * 0.95, y=0, h_align=1, v_align=-1, gap=0.8 * unit_mm, rotation=0)
 
-            theta = -atan(12 / i)
+            r_label = (rs1 + rs2) / 2
+            offset = 5 * unit_deg
+
+            # Divisions of scale on shadow scale
+            q = 90 * unit_deg
+            for i in range(1, 12):
+                # Decide how long to make this tick
+                rs = rs2 if (i % 4 == 0) else rs1
+
+                # Draw a tick on the shadow scale (right side)
+                theta = -atan(i / 12)
+                context.begin_path()
+                context.move_to(x=rs * cos(theta_b), y=-rs * cos(theta_b) * tan(theta))
+                context.line_to(x=r_12 * cos(theta_b), y=-r_12 * cos(theta_b) * tan(theta))
+                context.stroke()
+
+                # Label every fourth tick
+                if i % 4 == 0:
+                    context.text(text="{:d}".format(i),
+                                 x=r_label * cos(theta_b), y=-r_label * cos(theta_b) * tan(theta - offset),
+                                 h_align=0, v_align=0, gap=0, rotation=-q - theta)
+
+                # Draw a tick on the shadow scale (bottom right)
+                theta = -atan(12 / i)
+                context.begin_path()
+                context.move_to(x=rs * sin(theta_b) / tan(theta), y=-rs * sin(theta_b))
+                context.line_to(x=r_12 * sin(theta_b) / tan(theta), y=-r_12 * sin(theta_b))
+                context.stroke()
+
+                # Label every fourth tick
+                if i % 4 == 0:
+                    context.text(text="{:d}".format(i),
+                                 x=r_label * sin(theta_b) / tan(theta - offset), y=-r_label * sin(theta_b),
+                                 h_align=0, v_align=0, gap=0, rotation=-q - theta)
+
+                # Draw a tick on the shadow scale (bottom left)
+                theta = -2 * q - theta
+                context.begin_path()
+                context.move_to(x=rs * sin(theta_b) / tan(theta), y=-rs * sin(theta_b))
+                context.line_to(x=r_12 * sin(theta_b) / tan(theta), y=-r_12 * sin(theta_b))
+                context.stroke()
+
+                # Label every fourth tick
+                if i % 4 == 0:
+                    context.text(text="{:d}".format(i),
+                                 x=r_label * sin(theta_b) / tan(theta + offset), y=-r_label * sin(theta_b),
+                                 h_align=0, v_align=0, gap=0, rotation=-q - theta)
+
+                # Draw a tick on the shadow scale (left side)
+                theta = -2 * q + atan(i / 12)
+                context.begin_path()
+                context.move_to(x=rs * cos(theta_c), y=-rs * cos(theta_c) * tan(theta))
+                context.line_to(x=r_12 * cos(theta_c), y=-r_12 * cos(theta_c) * tan(theta))
+                context.stroke()
+
+                # Label every fourth tick
+                if i % 4 == 0:
+                    context.text(text="{:d}".format(i),
+                                 x=r_label * cos(theta_c), y=-r_label * cos(theta_c) * tan(theta + offset),
+                                 h_align=0, v_align=0, gap=0, rotation=-q - theta)
+
+            # Add the 12s to the ends of the shadow scale
+            theta = - 45 * unit_deg
+            context.text(text="12", x=r_label * sin(theta_b) / tan(theta - offset), y=-r_label * sin(theta_b),
+                         h_align=0, v_align=0, gap=0, rotation=-pi / 4)
+
+            theta = -135 * unit_deg
+            context.text(text="12", x=r_label * sin(theta_b) / tan(theta + offset), y=-r_label * sin(theta_b),
+                         h_align=0, v_align=0, gap=0, rotation=pi / 4)
+
+            # Unequal hours scale -- the maths behind this is explained in
+            # http://adsabs.harvard.edu/abs/1975JBAA...86...18E
+
+            # First draw innermost circle, which touches centre of astrolabe and the top of the unequal hours scale
             context.begin_path()
-            context.move_to(x=rs * sin(theta_b) / tan(theta), y=-rs * sin(theta_b))
-            context.line_to(x=r_12 * sin(theta_b) / tan(theta), y=-r_12 * sin(theta_b))
+            context.circle(centre_x=0, centre_y=-r_12 / 2, radius=r_12 / 2)
             context.stroke()
 
-            if i % 4 == 0:
-                context.text(text="{:d}".format(i),
-                             x=r_label * sin(theta_b) / tan(theta - offset), y=-r_label * sin(theta_b),
-                             h_align=0, v_align=0, gap=0, rotation=-q - theta)
+            # Now draw arcs for the hours 1 to 11
+            for theta in arange(15 * unit_deg, 75.1 * unit_deg, 15 * unit_deg):
+                # Vertical position of the centre of the arc
+                y_centre = r_12 * cos(theta) / 2 + r_12 * sin(theta) / 2 * tan(theta)
 
-            theta = -2 * q - theta
-            context.begin_path()
-            context.move_to(x=rs * sin(theta_b) / tan(theta), y=-rs * sin(theta_b))
-            context.line_to(x=r_12 * sin(theta_b) / tan(theta), y=-r_12 * sin(theta_b))
-            context.stroke()
+                # Size of arc
+                arc_end = atan2(r_12 * sin(theta), r_12 * cos(theta) / 2 - r_12 * sin(theta) / 2 * tan(theta))
 
-            if i % 4 == 0:
-                context.text(text="{:d}".format(i),
-                             x=r_label * sin(theta_b) / tan(theta + offset), y=-r_label * sin(theta_b),
-                             h_align=0, v_align=0, gap=0, rotation=-q - theta)
-
-            theta = -2 * q + atan(i / 12)
-            context.begin_path()
-            context.move_to(x=rs * cos(theta_c), y=-rs * cos(theta_c) * tan(theta))
-            context.line_to(x=r_12 * cos(theta_c), y=-r_12 * cos(theta_c) * tan(theta))
-            context.stroke()
-
-            if i % 4 == 0:
-                context.text(text="{:d}".format(i),
-                             x=r_label * cos(theta_c), y=-r_label * cos(theta_c) * tan(theta + offset),
-                             h_align=0, v_align=0, gap=0, rotation=-q - theta)
-
-        theta = - 45 * unit_deg
-        context.text(text="12", x=r_label * sin(theta_b) / tan(theta - offset), y=-r_label * sin(theta_b), h_align=0,
-                     v_align=0, gap=0, rotation=-pi / 4)
-
-        theta = -135 * unit_deg
-        context.text(text="12", x=r_label * sin(theta_b) / tan(theta + offset), y=-r_label * sin(theta_b), h_align=0,
-                     v_align=0, gap=0, rotation=pi / 4)
-
-        # Unequal hours scale
-        context.begin_path()
-        context.circle(centre_x=0, centre_y=-r_12 / 2, radius=r_12 / 2)
-        context.stroke()
-
-        for theta in arange(15 * unit_deg, 75.1 * unit_deg, 15 * unit_deg):
-            y_centre = r_12 * cos(theta) / 2 + r_12 * sin(theta) / 2 * tan(theta)
-            arc_end = atan2(r_12 * sin(theta), r_12 * cos(theta) / 2 - r_12 * sin(theta) / 2 * tan(theta))
-
-            context.begin_path()
-            context.arc(centre_x=0, centre_y=-y_centre, radius=y_centre,
-                        arc_from=arc_end - pi / 2, arc_to=-arc_end - pi / 2)
-            context.stroke()
+                context.begin_path()
+                context.arc(centre_x=0, centre_y=-y_centre, radius=y_centre,
+                            arc_from=arc_end - pi / 2, arc_to=-arc_end - pi / 2)
+                context.stroke()
 
         # Finish up
         context.set_color(color=theme['text'])

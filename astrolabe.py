@@ -48,90 +48,99 @@ theme = arguments['theme']
 # Render astrolabe in all available languages
 for language in text.text:
 
-    # Render climates for latitudes at 5-degree spacings from 10 deg -- 85 deg, plus 52N
-    for latitude in list(range(-80, 90, 5)) + [52]:
+    # Render simplified and full astrolabes
+    for astrolabe_type in ["full", "simplified"]:
 
-        # Do not make equatorial astrolabes, as they don't really work
-        if -10 < latitude < 10:
-            continue
+        # Render climates for latitudes at 5-degree spacings from 10 deg -- 85 deg, plus 52N
+        for latitude in list(range(-80, 90, 5)) + [52]:
 
-        # Boolean flag for which hemisphere we're in
-        southern = latitude < 0
+            # Do not make equatorial astrolabes, as they don't really work
+            if -10 < latitude < 10:
+                continue
 
-        # A dictionary of common substitutions
-        subs = {
-            "dir_parts": "output/astrolabe_parts",
-            "dir_out": "output/astrolabes",
-            "abs_lat": abs(latitude),
-            "ns": "S" if southern else "N",
-            "lang": language,
-            "lang_short": "" if language == "en" else "_{}".format(language)
-        }
+            # Boolean flag for which hemisphere we're in
+            southern = latitude < 0
 
-        settings = {
-            'language': language,
-            'latitude': latitude,
-            'theme': theme
-        }
+            # A dictionary of common substitutions
+            subs = {
+                "dir_parts": "output/astrolabe_parts",
+                "dir_out": "output/astrolabes",
+                "abs_lat": abs(latitude),
+                "ns": "S" if southern else "N",
+                "astrolabe_type": astrolabe_type,
+                "lang": language,
+                "lang_short": "" if language == "en" else "_{}".format(language)
+            }
 
-        # Render the parts of the astrolabe that do not change with geographic location
-        MotherFront(settings=settings).render_all_formats(
-            filename="{dir_parts}/mother_front_{abs_lat:02d}{ns}_{lang}".format(**subs)
-        )
+            settings = {
+                'language': language,
+                "astrolabe_type": astrolabe_type,
+                'latitude': latitude,
+                'theme': theme
+            }
 
-        MotherBack(settings=settings).render_all_formats(
-            filename="{dir_parts}/mother_back_{abs_lat:02d}{ns}_{lang}".format(**subs)
-        )
-
-        Rete(settings=settings).render_all_formats(
-            filename="{dir_parts}/rete_{abs_lat:02d}{ns}_{lang}".format(**subs)
-        )
-
-        Rule(settings=settings).render_all_formats(
-            filename="{dir_parts}/rule_{abs_lat:02d}{ns}_{lang}".format(**subs)
-        )
-
-        # Render the climate of the astrolabe
-        Climate(settings=settings).render_all_formats(
-            filename="{dir_parts}/climate_{abs_lat:02d}{ns}_{lang}".format(**subs)
-        )
-
-        # Make combined mother and climate
-        for img_format in GraphicsPage.supported_formats():
-            CompositeComponent(
-                settings=settings,
-                components=[
-                    MotherFront(settings=settings),
-                    Climate(settings=settings)
-                ]
-            ).render_all_formats(
-                filename="{dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}".format(**subs)
+            # Render the parts of the astrolabe that do not change with geographic location
+            MotherFront(settings=settings).render_all_formats(
+                filename="{dir_parts}/mother_front_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
             )
 
-        # Copy the PDF versions of the components of this astrolabe into LaTeX's working directory, to produce a
-        # PDF file containing all the parts of this astrolabe
-        os.system("mkdir -p doc/tmp")
-        os.system("cp {dir_parts}/mother_back_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/mother_back.pdf".format(**subs))
-        os.system(
-            "cp {dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/mother_front.pdf".format(**subs))
-        os.system("cp {dir_parts}/rete_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/rete.pdf".format(**subs))
-        os.system("cp {dir_parts}/rule_{abs_lat:02d}{ns}_{lang}.pdf doc/tmp/rule.pdf".format(**subs))
+            MotherBack(settings=settings).render_all_formats(
+                filename="{dir_parts}/mother_back_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
+            )
 
-        with open("doc/tmp/lat.tex", "wt") as f:
-            f.write(r"${abs_lat:d}^\circ${ns}".format(**subs))
+            Rete(settings=settings).render_all_formats(
+                filename="{dir_parts}/rete_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
+            )
 
-        # Wait for cairo to wake up and close the files
-        time.sleep(1)
+            Rule(settings=settings).render_all_formats(
+                filename="{dir_parts}/rule_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
+            )
 
-        # Build LaTeX documentation
-        for build_pass in range(3):
-            subprocess.check_output("cd doc ; pdflatex astrolabe.tex", shell=True)
-        os.system("mv doc/astrolabe.pdf {dir_out}/astrolabe_{abs_lat:02d}{ns}_{lang}.pdf".format(**subs))
+            # Render the climate of the astrolabe
+            Climate(settings=settings).render_all_formats(
+                filename="{dir_parts}/climate_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
+            )
 
-        # For the English language astrolabe, create a symlink with no language suffix in the filename
-        if language == "en":
-            os.system("ln -s astrolabe_{abs_lat:02d}{ns}_en.pdf "
-                      "{dir_out}/astrolabe_{abs_lat:02d}{ns}.pdf".format(**subs))
+            # Make combined mother and climate
+            for img_format in GraphicsPage.supported_formats():
+                CompositeComponent(
+                    settings=settings,
+                    components=[
+                        MotherFront(settings=settings),
+                        Climate(settings=settings)
+                    ]
+                ).render_all_formats(
+                    filename="{dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}".format(**subs)
+                )
 
-        # Clean up the rubbish that LaTeX leaves behind
-        os.system("cd doc ; rm -f *.aux *.log *.dvi *.ps *.pdf")
+            # Copy the PDF versions of the components of this astrolabe into LaTeX's working directory, to produce a
+            # PDF file containing all the parts of this astrolabe
+            os.system("mkdir -p doc/tmp")
+            os.system("cp {dir_parts}/mother_back_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}.pdf "
+                      "   doc/tmp/mother_back.pdf".format(**subs))
+            os.system("cp {dir_parts}/mother_front_combi_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}.pdf "
+                      "   doc/tmp/mother_front.pdf".format(**subs))
+            os.system("cp {dir_parts}/rete_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}.pdf "
+                      "   doc/tmp/rete.pdf".format(**subs))
+            os.system("cp {dir_parts}/rule_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}.pdf "
+                      "   doc/tmp/rule.pdf".format(**subs))
+
+            with open("doc/tmp/lat.tex", "wt") as f:
+                f.write(r"${abs_lat:d}^\circ${ns}".format(**subs))
+
+            # Wait for cairo to wake up and close the files
+            time.sleep(1)
+
+            # Build LaTeX documentation
+            for build_pass in range(3):
+                subprocess.check_output("cd doc ; pdflatex astrolabe.tex", shell=True)
+            os.system("mv doc/astrolabe.pdf "
+                      "   {dir_out}/astrolabe_{abs_lat:02d}{ns}_{lang}_{astrolabe_type}.pdf".format(**subs))
+
+            # For the English language astrolabe, create a symlink with no language suffix in the filename
+            if language == "en" and astrolabe_type == "full":
+                os.system("ln -s astrolabe_{abs_lat:02d}{ns}_en_full.pdf "
+                          "{dir_out}/astrolabe_{abs_lat:02d}{ns}.pdf".format(**subs))
+
+            # Clean up the rubbish that LaTeX leaves behind
+            os.system("cd doc ; rm -f *.aux *.log *.dvi *.ps *.pdf")

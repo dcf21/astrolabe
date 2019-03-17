@@ -1,4 +1,4 @@
-## Make your own cardboard model astrolabe.
+## Make your own cardboard model astrolabe
 
 See https://in-the-sky.org/astrolabe/index.php for more information.
 

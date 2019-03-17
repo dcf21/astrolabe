@@ -75,22 +75,31 @@ class Rule(BaseComponent):
 
         margin = 2 * unit_cm
 
-        r_2 = r_1 - d_12 * 3 - unit_mm  # Outer radius of rete
-        r_3 = d_12 * centre_scaling  # Radius of central hole
+        # Define the radii of all the concentric circles to be drawn on front of mother
 
-        r_4 = r_2 * tan((90 - inclination_ecliptic) / 2 * unit_deg)  # Radius of equator
-        r_5 = r_4 * tan((90 - inclination_ecliptic) / 2 * unit_deg)  # Radius of tropic of Cancer
+        # Outer radius of rete
+        r_2 = r_1 - d_12 * 3 - unit_mm
 
-        r_6 = 0.8 * unit_cm  # Width of alidade
+        # Radius of central hole
+        r_3 = d_12 * centre_scaling
 
-        r_12 = r_1 - d_12 * 10  # Outer radius of shadow scale
+        # Radius of equator
+        r_4 = r_2 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
+
+        # Width of alidade
+        r_6 = 0.8 * unit_cm
+
+        # Outer radius of shadow scale
+        r_12 = r_1 - d_12 * 10
 
         # Subroutine to draw outlines of rule and the alidade
         def rule_draw(context, xpos, ypos, sight):
+            # Draw central hole
             context.begin_path()
             context.circle(centre_x=xpos, centre_y=ypos, radius=r_3)
             context.stroke()
 
+            # Draw curved bits in centre
             context.begin_path()
             context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=-90 * unit_deg, arc_to=0)
             context.stroke()
@@ -99,6 +108,7 @@ class Rule(BaseComponent):
             context.arc(centre_x=xpos, centre_y=ypos, radius=r_6, arc_from=90 * unit_deg, arc_to=180 * unit_deg)
             context.stroke()
 
+            # Now draw the straight edges of the ruler
             context.begin_path()
 
             context.move_to(x=xpos, y=ypos + r_6)
@@ -113,6 +123,7 @@ class Rule(BaseComponent):
 
             context.stroke()
 
+            # If the ruler is to have a sight, then create tabs which user can fold out
             if sight:
                 context.begin_path()
                 context.rectangle(x0=xpos, y0=ypos - r_2 * 0.65, x1=xpos + r_2 * 0.1, y1=ypos - r_2 * 0.85)
@@ -125,10 +136,11 @@ class Rule(BaseComponent):
 
         context.set_font_size(0.9)
 
-        # Only alidade has a sight
+        # Draw the rule (no sight)
         rule_draw(context, 0 * unit_cm, 0 * unit_cm, False)
         context.text(text="(a) Rule", x=-7 * unit_mm, y=r_2 + margin + 1.5 * r_6)
 
+        # Draw the alidade (with sight)
         rule_draw(context, separation, 0 * unit_cm, True)
         context.text(text="(b) Alidade", x=separation - 7 * unit_mm, y=r_2 + margin + 1.5 * r_6)
 
@@ -168,33 +180,34 @@ class Rule(BaseComponent):
                 context.stroke()
 
         # Draw solar-altitude scale on alidade
-        context.set_font_size(1.0)
+        if settings['astrolabe_type'] == 'full':
+            context.set_font_size(1.0)
 
-        for i in range(20, 91, 5):
-            r = r_12 * sin(i * unit_deg)
-            context.begin_path()
-            context.move_to(x=separation, y=-r)
-            context.line_to(x=separation - major_tick_length / 2, y=-r)
-            context.move_to(x=separation, y=r)
-            context.line_to(x=separation + major_tick_length / 2, y=r)
-            context.stroke()
+            for i in range(20, 91, 5):
+                r = r_12 * sin(i * unit_deg)
+                context.begin_path()
+                context.move_to(x=separation, y=-r)
+                context.line_to(x=separation - major_tick_length / 2, y=-r)
+                context.move_to(x=separation, y=r)
+                context.line_to(x=separation + major_tick_length / 2, y=r)
+                context.stroke()
 
-        for i in [20, 35, 50, 80]:
-            r = r_12 * sin(i * unit_deg)
+            for i in [20, 35, 50, 80]:
+                r = r_12 * sin(i * unit_deg)
 
-            context.begin_path()
-            context.move_to(x=separation, y=-r)
-            context.line_to(x=separation - major_tick_length, y=-r)
-            context.stroke()
-            context.text(text="{}\u00b0".format(i), x=separation - major_tick_length, y=-r,
-                         v_align=1, rotation=90 * unit_deg)
+                context.begin_path()
+                context.move_to(x=separation, y=-r)
+                context.line_to(x=separation - major_tick_length, y=-r)
+                context.stroke()
+                context.text(text="{}\u00b0".format(i), x=separation - major_tick_length, y=-r,
+                             v_align=1, rotation=90 * unit_deg)
 
-            context.begin_path()
-            context.move_to(x=separation, y=r)
-            context.line_to(x=separation + major_tick_length, y=r)
-            context.stroke()
-            context.text(text="{}\u00b0".format(i), x=separation + major_tick_length, y=r,
-                         v_align=1, rotation=-90 * unit_deg)
+                context.begin_path()
+                context.move_to(x=separation, y=r)
+                context.line_to(x=separation + major_tick_length, y=r)
+                context.stroke()
+                context.text(text="{}\u00b0".format(i), x=separation + major_tick_length, y=r,
+                             v_align=1, rotation=-90 * unit_deg)
 
 
 # Do it right away if we're run as a script

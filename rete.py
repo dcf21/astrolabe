@@ -82,8 +82,7 @@ class Rete(BaseComponent):
 
         context.set_font_size(1.0)
 
-        # The radius of the tab at the top of climate, relative to the centre of the astrolabe
-        r_tab = r_1 - d_12 * 2.5 - unit_mm
+        # Define the radii of all the concentric circles drawn on front of mother
 
         # Outer radius of the rete
         r_2 = r_1 - d_12 * 3 - unit_mm
@@ -102,26 +101,36 @@ class Rete(BaseComponent):
         context.circle(centre_x=0, centre_y=0, radius=r_2)
         context.stroke()
 
+        # Draw the central hole
         context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_3)
         context.stroke()
 
         # Draw ecliptic
-        y_ecl_centre = (r_2 - r_5) / 2  # Ecliptic circle centred on centre point between +r_2 and -r_5
+        y_ecl_centre = (r_2 - r_5) / 2  # Ecliptic circle is centred on midpoint between +r_2 and -r_5
         r_ecl_outer = (r_2 + r_5) / 2  # Outer radius of ecliptic circle... circle touches r_2 and -r_5
         r_ecl_inner = r_ecl_outer * 0.9
         r_ecl_centre = (r_ecl_outer + r_ecl_inner * 2) / 3
 
+        # Draw ecliptic as band with outer and inner edges
         context.begin_path()
         context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_outer)
         context.circle(centre_x=0, centre_y=(r_2 - r_5) / 2, radius=r_ecl_inner)
         context.stroke(line_width=1, color=theme['lines'])
 
-        # Draw tick marks along ecliptic
-        for theta in arange(0 * unit_deg, 359 * unit_deg, 2 * unit_deg):
-            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
-            psi = theta + alpha  # Angles in triangle add up to 180 degrees
+        # Draw tick marks along the ecliptic at 2-degree intervals
 
+        # The maths used here is described in http://adsabs.harvard.edu/abs/1976JBAA...86..219E
+
+        for theta in arange(0 * unit_deg, 359 * unit_deg, 2 * unit_deg):
+            # Sine rule
+            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)
+
+            # Angles in triangle add up to 180 degrees
+            psi = theta + alpha
+
+            # Decide size of tick -- every 30 degrees divide entire ecliptic band; major tick every 10 degrees;
+            # all other ticks are smaller
             t = floor((theta / unit_deg) + 0.01)
             if (t % 30) == 0:
                 r_tick_inner = r_ecl_inner
@@ -130,12 +139,14 @@ class Rete(BaseComponent):
             else:
                 r_tick_inner = (3 * r_ecl_outer + r_ecl_inner) / 4
 
+            # Draw tick mark
             context.begin_path()
             context.move_to(x=r_ecl_outer * sin(psi), y=y_ecl_centre + r_ecl_outer * cos(psi))
             context.line_to(x=r_tick_inner * sin(psi), y=y_ecl_centre + r_tick_inner * cos(psi))
             context.stroke()
 
-        # Write zodiacal constellation names around ecliptic
+        # Write zodiacal constellation names around ecliptic. We make the text smaller in the southern hemisphere,
+        # because "Sagittarius" has a lot of letters to fit into a small space!
         if not is_southern:
             text_size = 1
         else:
@@ -151,12 +162,16 @@ class Rete(BaseComponent):
                 theta = (-90 - 15 + 30 * i) * unit_deg
                 name = name[:8]
 
-            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)  # Sine rule
-            psi = -90 * unit_deg - (theta + alpha)  # Angles in triangle add up to 180 degrees
+            # Sine rule
+            alpha = asin(y_ecl_centre * sin(theta) / r_ecl_outer)
+
+            # Angles in triangle add up to 180 degrees
+            psi = -90 * unit_deg - (theta + alpha)
+
             context.circular_text(text=name, centre_x=0, centre_y=y_ecl_centre, radius=r_ecl_centre * 1.02,
                                   azimuth=psi / unit_deg, spacing=0.9, size=text_size)
 
-        # Set clipping region
+        # Set clipping region so that we don't draw stars over the top of the ecliptic belt
         context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_2)
         context.begin_sub_path()
@@ -172,7 +187,7 @@ class Rete(BaseComponent):
         context.circle(centre_x=0, centre_y=0, radius=r_4)
         context.stroke()
 
-        # Tropic of Cancer
+        # Draw the Tropic of Cancer
         context.begin_path()
         context.circle(centre_x=0, centre_y=0, radius=r_5)
         context.stroke()
@@ -188,12 +203,14 @@ class Rete(BaseComponent):
             # Split line into words
             [name, ra1, dec1, ra2, dec2] = line.split()
 
+            # In the southern hemisphere, we flip the sky upside down
             if is_southern:
                 dec1 = -float(dec1)
                 ra1 = -float(ra1)
                 dec2 = -float(dec2)
                 ra2 = -float(ra2)
 
+            # Convert start and end of line into a radius and an azimuth
             theta_point_1 = (90 - float(dec1)) * unit_deg / 2
             r_point_1 = r_4 * tan(theta_point_1)
             if r_point_1 > r_2:
@@ -204,6 +221,7 @@ class Rete(BaseComponent):
             if r_point_2 > r_2:
                 continue
 
+            # Draw stick figure line
             context.begin_path()
             context.move_to(x=r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
             context.line_to(x=r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
@@ -217,6 +235,7 @@ class Rete(BaseComponent):
             if mag == "-" or float(mag) > 4.0:
                 continue
 
+            # In the southern hemisphere, we flip the sky upside down
             ra = float(ra)
             dec = float(dec)
             if is_southern:
@@ -236,7 +255,7 @@ class Rete(BaseComponent):
                            radius=0.18 * unit_mm * (5 - mag))
             context.fill(color=theme['lines'])
 
-        # Draw RA scale
+        # Draw RA scale around the edge of the rete
         r_tick = r_2 * 0.98
         for ra in arange(0, 23.9, 1):
             theta = ra / 24 * unit_rev
@@ -251,6 +270,7 @@ class Rete(BaseComponent):
                          x=r_tick * cos(theta), y=-r_tick * sin(theta),
                          h_align=0, v_align=-1, gap=unit_mm, rotation=-pi / 2 - theta)
 
+        # Draw six small tick marks within each hour of RA
         r_tick = r_2 * 0.99
         for ra in arange(0, 23.9, 1. / 6):
             theta = ra / 24 * unit_rev
