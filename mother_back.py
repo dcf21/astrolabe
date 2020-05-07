@@ -313,7 +313,7 @@ class MotherBack(BaseComponent):
             if ((d % 10) == 0) or (d > 26):
                 context.set_font_size(1.0)
                 theta2 = theta - 0.2 * unit_deg
-                context.text(text="{:.0f}".format(d / 10),
+                context.text(text="{:.0f}".format(floor(d / 10)),
                              x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
                              h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
                 theta2 = theta + 0.2 * unit_deg
