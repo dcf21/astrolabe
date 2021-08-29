@@ -132,5 +132,43 @@ text = {
             "directions": ["N", "NNV", "NV", "VNV", "V", "VSV", "SV", "SSV",
                            "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"],
             "midnight": "Midnight"
+        },
+    "de":
+        {
+            "months": [
+                [31, "JANUAR"],
+                [28, "FEBRUAR"],
+                [31, "MÄRZ"],
+                [30, "APRIL"],
+                [31, "MAI"],
+                [30, "JUNI"],
+                [31, "JULI"],
+                [31, "AUGUST"],
+                [30, "SEPTEMBER"],
+                [31, "OKTOBER"],
+                [30, "NOVEMBER"],
+                [31, "DEZEMBER"]
+            ],
+            "zodiacal_constellations": [
+                {"name": "Widder", "symbol": "\u2648"},
+                {"name": "Stier", "symbol": "\u2649"},
+                {"name": "Zwillinge", "symbol": "\u264a"},
+                {"name": "Krebs", "symbol": "\u264b"},
+                {"name": "Löwe", "symbol": "\u264c"},
+                {"name": "Jungfrau", "symbol": "\u264d"},
+                {"name": "Waage", "symbol": "\u264e"},
+                {"name": "Scorpion", "symbol": "\u264f"},
+                {"name": "Schütze", "symbol": "\u2650"},
+                {"name": "Steinbock", "symbol": "\u2651"},
+                {"name": "Wassermann", "symbol": "\u2652"},
+                {"name": "Fische", "symbol": "\u2653"},
+            ],
+            "url": "https://in-the-sky.org/astrolabe/index.html",
+            "copyright": "\u00A9 Dominic Ford 2020",
+            "climate_latitude": "Klima vorbereited für geographische Breite {:02d}{:s}",
+            "name": "Name",
+            "directions": ["N", "NNW", "NW", "WNW", "W", "WSW", "SW", "SSW",
+                           "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"],
+            "midnight": "Mitternacht"
         }
 }
