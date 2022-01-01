@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2020 Dominic Ford <dcf21-www@dcford.org.uk>
+# Copyright (C) 2010-2022 Dominic Ford <dcf21-www@dcford.org.uk>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -50,7 +50,7 @@ text = {
                 {"name": "Pisces", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2020",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132022",
             "climate_latitude": "Climate prepared for latitude {:02d}{:s}",
             "name": "Name",
             "directions": ["N", "NNW", "NW", "WNW", "W", "WSW", "SW", "SSW",
@@ -88,7 +88,7 @@ text = {
                 {"name": "Poissons", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2020",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132022",
             "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}",
             "name": "Nom",
             "directions": ["N", "NNO", "NO", "ONO", "O", "OSO", "SO", "SSO",
@@ -126,7 +126,7 @@ text = {
                 {"name": "Fiskarna", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2020",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132022",
             "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}",
             "name": "Namn",
             "directions": ["N", "NNV", "NV", "VNV", "V", "VSV", "SV", "SSV",
@@ -164,7 +164,7 @@ text = {
                 {"name": "Fische", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2020",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132022",
             "climate_latitude": "Klima vorbereited für geographische Breite {:02d}{:s}",
             "name": "Name",
             "directions": ["N", "NNW", "NW", "WNW", "W", "WSW", "SW", "SSW",
