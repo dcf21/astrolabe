@@ -3,7 +3,7 @@
 #
 # The python script in this file defines the available themes for the astrolabe.
 #
-# Copyright (C) 2019 André Werlang <dcf21-www@dcford.org.uk>
+# Copyright (C) 2019 André Werlang <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software

@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2022 Dominic Ford <dcf21-www@dcford.org.uk>
+# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -242,23 +242,24 @@ class MotherBack(BaseComponent):
         y_1394 = []  # List of solar longitude values for each data point
         x_1974 = []
         y_1974 = []
-        for line in open("raw_data/tuckerman.dat", "rt"):
-            line = line.strip()
+        with open("raw_data/tuckerman.dat", "rt") as f_in:
+            for line in f_in:
+                line = line.strip()
 
-            # Ignore blank lines and comment lines
-            if (len(line) == 0) or (line[0] == '#'):
-                continue
+                # Ignore blank lines and comment lines
+                if (len(line) == 0) or (line[0] == '#'):
+                    continue
 
-            # Split line into words
-            columns = [float(i) for i in line.split()]
+                # Split line into words
+                columns = [float(i) for i in line.split()]
 
-            x_1394.append(calendar.julian_day(year=1394, month=int(columns[0]), day=int(columns[1]),
-                                              hour=12, minute=0, sec=0))
-            x_1974.append(calendar.julian_day(year=1974, month=int(columns[0]), day=int(columns[1]),
-                                              hour=12, minute=0, sec=0))
+                x_1394.append(calendar.julian_day(year=1394, month=int(columns[0]), day=int(columns[1]),
+                                                  hour=12, minute=0, sec=0))
+                x_1974.append(calendar.julian_day(year=1974, month=int(columns[0]), day=int(columns[1]),
+                                                  hour=12, minute=0, sec=0))
 
-            y_1394.append(30 * unit_deg * (columns[4] - 1) + columns[5] * unit_deg)
-            y_1974.append(30 * unit_deg * (columns[6] - 1) + columns[7] * unit_deg)
+                y_1394.append(30 * unit_deg * (columns[4] - 1) + columns[5] * unit_deg)
+                y_1974.append(30 * unit_deg * (columns[6] - 1) + columns[7] * unit_deg)
 
         # Use scipy to do linear interpolation between the supplied data
         theta_1394 = scipy.interpolate.interp1d(x=x_1394, y=y_1394, kind='linear')
@@ -272,82 +273,83 @@ class MotherBack(BaseComponent):
 
         prev_theta = 30 * unit_deg * (10 - 1) + 9.4 * unit_deg
 
-        for line in open("raw_data/tuckerman.dat"):
-            line = line.strip()
+        with open("raw_data/tuckerman.dat") as f_in:
+            for line in f_in:
+                line = line.strip()
 
-            # Ignore blank lines and comment lines
-            if (len(line) == 0) or (line[0] == "#"):
-                continue
+                # Ignore blank lines and comment lines
+                if (len(line) == 0) or (line[0] == "#"):
+                    continue
 
-            m, d, interval, last, z1394, a1394, z1974, a1974 = [float(i) for i in line.split()]
+                m, d, interval, last, z1394, a1394, z1974, a1974 = [float(i) for i in line.split()]
 
-            # *** Calendar for 1974 ***
+                # *** Calendar for 1974 ***
 
-            # Work out azimuth of given date in 1974 calendar
-            theta = 30 * unit_deg * (z1974 - 1) + a1974 * unit_deg
+                # Work out azimuth of given date in 1974 calendar
+                theta = 30 * unit_deg * (z1974 - 1) + a1974 * unit_deg
 
-            # Interpolate interval into number of days since last data point in table (normally five)
-            if prev_theta > theta:
-                prev_theta = prev_theta - unit_rev
-            for i in arange(0, interval - 0.1):
-                theta_day = prev_theta + (theta - prev_theta) * (i + 1) / interval
-                context.begin_path()
-                context.move_to(x=r_7 * cos(theta_day), y=-r_7 * sin(theta_day))
-                context.line_to(x=r_8 * cos(theta_day), y=-r_8 * sin(theta_day))
-                context.stroke()
-            prev_theta = theta
+                # Interpolate interval into number of days since last data point in table (normally five)
+                if prev_theta > theta:
+                    prev_theta = prev_theta - unit_rev
+                for i in arange(0, interval - 0.1):
+                    theta_day = prev_theta + (theta - prev_theta) * (i + 1) / interval
+                    context.begin_path()
+                    context.move_to(x=r_7 * cos(theta_day), y=-r_7 * sin(theta_day))
+                    context.line_to(x=r_8 * cos(theta_day), y=-r_8 * sin(theta_day))
+                    context.stroke()
+                prev_theta = theta
 
-            # Draw a marker line on calendar. Month ends get longer markers
-            if last:
-                context.begin_path()
-                context.move_to(x=r_8 * cos(theta), y=-r_8 * sin(theta))
-                context.line_to(x=r_10 * cos(theta), y=-r_10 * sin(theta))
-                context.stroke()
-            else:
-                context.begin_path()
-                context.move_to(x=r_8 * cos(theta), y=-r_8 * sin(theta))
-                context.line_to(x=r_9 * cos(theta), y=-r_9 * sin(theta))
-                context.stroke()
-
-            # Label 10th and 20th day of month, and last day of month
-            if ((d % 10) == 0) or (d > 26):
-                context.set_font_size(1.0)
-                theta2 = theta - 0.2 * unit_deg
-                context.text(text="{:.0f}".format(floor(d / 10)),
-                             x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
-                             h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
-                theta2 = theta + 0.2 * unit_deg
-                context.text(text="{:.0f}".format(d % 10),
-                             x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
-                             h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
-
-            # *** Calendar for 1394 ***
-
-            # Work out azimuth of given date in 1394 calendar
-            if settings['astrolabe_type'] == 'full':
-                theta = 30 * unit_deg * (z1394 - 1) + a1394 * unit_deg
+                # Draw a marker line on calendar. Month ends get longer markers
                 if last:
                     context.begin_path()
-                    context.move_to(x=r_5 * cos(theta), y=-r_5 * sin(theta))
-                    context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                    context.move_to(x=r_8 * cos(theta), y=-r_8 * sin(theta))
+                    context.line_to(x=r_10 * cos(theta), y=-r_10 * sin(theta))
                     context.stroke()
                 else:
                     context.begin_path()
-                    context.move_to(x=r_6 * cos(theta), y=-r_6 * sin(theta))
-                    context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                    context.move_to(x=r_8 * cos(theta), y=-r_8 * sin(theta))
+                    context.line_to(x=r_9 * cos(theta), y=-r_9 * sin(theta))
                     context.stroke()
 
                 # Label 10th and 20th day of month, and last day of month
                 if ((d % 10) == 0) or (d > 26):
-                    context.set_font_size(0.75)
+                    context.set_font_size(1.0)
                     theta2 = theta - 0.2 * unit_deg
-                    context.text(text="{:.0f}".format(d / 10),
-                                 x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                    context.text(text="{:.0f}".format(floor(d / 10)),
+                                 x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
                                  h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
                     theta2 = theta + 0.2 * unit_deg
                     context.text(text="{:.0f}".format(d % 10),
-                                 x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                                 x=rt_2 * cos(theta2), y=-rt_2 * sin(theta2),
                                  h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+
+                # *** Calendar for 1394 ***
+
+                # Work out azimuth of given date in 1394 calendar
+                if settings['astrolabe_type'] == 'full':
+                    theta = 30 * unit_deg * (z1394 - 1) + a1394 * unit_deg
+                    if last:
+                        context.begin_path()
+                        context.move_to(x=r_5 * cos(theta), y=-r_5 * sin(theta))
+                        context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                        context.stroke()
+                    else:
+                        context.begin_path()
+                        context.move_to(x=r_6 * cos(theta), y=-r_6 * sin(theta))
+                        context.line_to(x=r_7 * cos(theta), y=-r_7 * sin(theta))
+                        context.stroke()
+
+                    # Label 10th and 20th day of month, and last day of month
+                    if ((d % 10) == 0) or (d > 26):
+                        context.set_font_size(0.75)
+                        theta2 = theta - 0.2 * unit_deg
+                        context.text(text="{:.0f}".format(d / 10),
+                                     x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                                     h_align=1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
+                        theta2 = theta + 0.2 * unit_deg
+                        context.text(text="{:.0f}".format(d % 10),
+                                     x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
+                                     h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
         # Label names of months
         for mn, (mlen, name) in enumerate(text[language]['months']):
@@ -368,25 +370,26 @@ class MotherBack(BaseComponent):
 
         # Add dates of saints days between circles 10 and 12
         context.set_font_size(1.0)
-        for line in open("raw_data/saints_days.dat"):
-            line = line.strip()
+        with open("raw_data/saints_days.dat") as f_in:
+            for line in f_in:
+                line = line.strip()
 
-            # Ignore blank lines and comment lines
-            if (len(line) == 0) or (line[0] == "#"):
-                continue
+                # Ignore blank lines and comment lines
+                if (len(line) == 0) or (line[0] == "#"):
+                    continue
 
-            d, m, name = line.split()
+                d, m, name = line.split()
 
-            day_week = floor(calendar.julian_day(year=1974, month=int(m), day=int(d), hour=12, minute=0, sec=0) -
-                             calendar.julian_day(year=1974, month=1, day=1, hour=12, minute=0, sec=0)) % 7
-            sunday_letter = "abcdefg"[day_week:day_week + 1]
-            theta = theta_1974(calendar.julian_day(year=1974, month=int(m), day=int(d), hour=12, minute=0, sec=0))
-            context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_10 * 0.65 + r_11 * 0.35,
-                                  azimuth=theta / unit_deg,
-                                  spacing=1, size=1)
-            context.circular_text(text=sunday_letter, centre_x=0, centre_y=0, radius=r_11 * 0.65 + r_12 * 0.35,
-                                  azimuth=theta / unit_deg,
-                                  spacing=1, size=1)
+                day_week = floor(calendar.julian_day(year=1974, month=int(m), day=int(d), hour=12, minute=0, sec=0) -
+                                 calendar.julian_day(year=1974, month=1, day=1, hour=12, minute=0, sec=0)) % 7
+                sunday_letter = "abcdefg"[day_week:day_week + 1]
+                theta = theta_1974(calendar.julian_day(year=1974, month=int(m), day=int(d), hour=12, minute=0, sec=0))
+                context.circular_text(text=name, centre_x=0, centre_y=0, radius=r_10 * 0.65 + r_11 * 0.35,
+                                      azimuth=theta / unit_deg,
+                                      spacing=1, size=1)
+                context.circular_text(text=sunday_letter, centre_x=0, centre_y=0, radius=r_11 * 0.65 + r_12 * 0.35,
+                                      azimuth=theta / unit_deg,
+                                      spacing=1, size=1)
 
         # Shadow scale in middle of astrolabe
         if settings['astrolabe_type'] == 'full':

@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2022 Dominic Ford <dcf21-www@dcford.org.uk>
+# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -193,39 +193,40 @@ class Rete(BaseComponent):
         context.stroke()
 
         # Draw constellation stick figures
-        for line in open("raw_data/constellation_stick_figures.dat"):
-            line = line.strip()
+        with open("raw_data/constellation_stick_figures.dat") as f_in:
+            for line in f_in:
+                line = line.strip()
 
-            # Ignore blank lines and comment lines
-            if (len(line) == 0) or (line[0] == '#'):
-                continue
+                # Ignore blank lines and comment lines
+                if (len(line) == 0) or (line[0] == '#'):
+                    continue
 
-            # Split line into words
-            [name, ra1, dec1, ra2, dec2] = line.split()
+                # Split line into words
+                [name, ra1, dec1, ra2, dec2] = line.split()
 
-            # In the southern hemisphere, we flip the sky upside down
-            if is_southern:
-                dec1 = -float(dec1)
-                ra1 = -float(ra1)
-                dec2 = -float(dec2)
-                ra2 = -float(ra2)
+                # In the southern hemisphere, we flip the sky upside down
+                if is_southern:
+                    dec1 = -float(dec1)
+                    ra1 = -float(ra1)
+                    dec2 = -float(dec2)
+                    ra2 = -float(ra2)
 
-            # Convert start and end of line into a radius and an azimuth
-            theta_point_1 = (90 - float(dec1)) * unit_deg / 2
-            r_point_1 = r_4 * tan(theta_point_1)
-            if r_point_1 > r_2:
-                continue
+                # Convert start and end of line into a radius and an azimuth
+                theta_point_1 = (90 - float(dec1)) * unit_deg / 2
+                r_point_1 = r_4 * tan(theta_point_1)
+                if r_point_1 > r_2:
+                    continue
 
-            theta_point_2 = (90 - float(dec2)) * unit_deg / 2
-            r_point_2 = r_4 * tan(theta_point_2)
-            if r_point_2 > r_2:
-                continue
+                theta_point_2 = (90 - float(dec2)) * unit_deg / 2
+                r_point_2 = r_4 * tan(theta_point_2)
+                if r_point_2 > r_2:
+                    continue
 
-            # Draw stick figure line
-            context.begin_path()
-            context.move_to(x=r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
-            context.line_to(x=r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
-            context.stroke(dotted=True, line_width=1, color=theme['stick_figures'])
+                # Draw stick figure line
+                context.begin_path()
+                context.move_to(x=r_point_1 * cos(float(ra1) * unit_deg), y=-r_point_1 * sin(float(ra1) * unit_deg))
+                context.line_to(x=r_point_2 * cos(float(ra2) * unit_deg), y=-r_point_2 * sin(float(ra2) * unit_deg))
+                context.stroke(dotted=True, line_width=1, color=theme['stick_figures'])
 
         # Draw stars from Yale Bright Star Catalogue
         for star_descriptor in fetch_bright_star_list()['stars'].values():

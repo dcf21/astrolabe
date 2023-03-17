@@ -4,7 +4,7 @@
 #
 # The bash script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2022 Dominic Ford <dcf21-www@dcford.org.uk>
+# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
