@@ -20,7 +20,11 @@
 A thin wrapper to produce vector graphics using cairo.
 """
 
+import logging
+
 from math import pi, sin, cos
+
+from typing import Dict, List, Optional, Sequence
 
 import cairocffi as cairo
 from constants import unit_deg, unit_mm, font_size_base, line_width_base, dots_per_inch
@@ -33,47 +37,38 @@ class GraphicsPage:
     """
 
     def __init__(self,
-                 img_format="png",
-                 output="page",
-                 width=0.15,
-                 height=0.15,
-                 dots_per_inch=dots_per_inch):
+                 img_format: str = "png",
+                 output: str = "page",
+                 width: float = 0.15,
+                 height: float = 0.15,
+                 dots_per_inch: float = dots_per_inch):
         """
         A thin wrapper to produce vector graphics using cairo. This class represents a page / image file we are going
         to draw onto.
 
         :param img_format:
             The image format we are to produce.
-        :type img_format:
-            str
         :param output:
-            The filename of the image file we are to produce, without a file type suffix
-        :type output:
-            str
+            The filename of the image file we are to produce, without file type suffix
         :param width:
             The width of the page, metres
-        :type width:
-            float
         :param height:
             The height of the page, metres
-        :type height:
-            float
         :param dots_per_inch:
             The dots per inch resolution to render this page
-        :type dots_per_inch:
-            float
         """
 
         # PDF surfaces are always measured in points
         if img_format in ("pdf", "svg"):
             dots_per_inch = 72.
 
-        self.format = img_format
-        self.output = "{}.{}".format(output, img_format)
-        self.dots_per_metre = dots_per_inch * 39.370079
-        self.width = int(width * self.dots_per_metre)
-        self.height = int(height * self.dots_per_metre)
+        self.format: str = img_format
+        self.output: str = "{}.{}".format(output, img_format)
+        self.dots_per_metre: float = dots_per_inch * 39.370079
+        self.width: int = int(width * self.dots_per_metre)  # pixels
+        self.height: int = int(height * self.dots_per_metre)  # pixels
 
+        self.surface = None
         if self.format == "pdf":
             self.surface = cairo.PDFSurface(self.output, self.width, self.height)
         elif self.format == "png":
@@ -95,7 +90,7 @@ class GraphicsPage:
         if self.surface is None:
             return
 
-        print("Creating file <{}>".format(self.output))
+        logging.info("Creating file <{}>".format(self.output))
 
         if self.format == "pdf":
             self.surface.show_page()
@@ -107,7 +102,7 @@ class GraphicsPage:
             assert False, "Unknown image output format {}".format(self.format)
 
         # Clean up
-        del self.surface
+        self.surface.finish()
         self.surface = None
 
     def __enter__(self):
@@ -128,10 +123,10 @@ class GraphicsContext:
     """
 
     def __init__(self,
-                 page,
-                 offset_x=0,
-                 offset_y=0,
-                 rotation=0):
+                 page: GraphicsPage,
+                 offset_x: float = 0,
+                 offset_y: float = 0,
+                 rotation: float = 0):
         """
         A thin wrapper to produce vector graphics using cairo. This class provides a drawing context that we can use to
         draw a figure onto a page.
@@ -139,29 +134,31 @@ class GraphicsContext:
         :param page:
             The GraphicsPage we are going to draw onto
         :param offset_x:
-            The offset of this drawing from (0,0) on the page
+            The offset of this drawing from (0,0) on the page, metres
         :param offset_y:
-            The offset of this drawing from (0,0) on the page
+            The offset of this drawing from (0,0) on the page, metres
         :param rotation:
-            The rotation of this drawing
+            The rotation of this drawing, radians
         """
 
         assert isinstance(page, GraphicsPage)
 
-        self.base_line_width = line_width_base
-        self.base_font_size = font_size_base
-        self.font_size = False
-        self.font_bold = False
-        self.font_italic = False
-        self.line_dotted = False
+        # Record our drawing state
+        self.base_line_width: float = line_width_base
+        self.base_font_size: float = font_size_base
+        self.font_size: Optional[float] = False
+        self.font_bold: bool = False
+        self.font_italic: bool = False
+        self.line_dotted: bool = False
 
+        # Create Cairo context with default settings for requested canvas
         self.context = cairo.Context(target=page.surface)
         self.context.scale(sx=page.dots_per_metre, sy=page.dots_per_metre)
         self.context.translate(tx=offset_x, ty=offset_y)
         self.context.rotate(radians=rotation * unit_deg)
         self.set_line_width(line_width=1)
         self.set_font_style()
-        self.set_font_size(1)
+        self.set_font_size(font_size=1)
         self.context.set_fill_rule(fill_rule=cairo.FILL_RULE_EVEN_ODD)
 
     def __enter__(self):
@@ -171,21 +168,75 @@ class GraphicsContext:
         pass
 
     def begin_path(self):
+        """
+        Begin a new path.
+        """
         self.context.new_path()
 
     def begin_sub_path(self):
+        """
+        Begin a new closed shape within the current path
+        """
         self.context.new_sub_path()
 
-    def move_to(self, x, y):
+    def move_to(self, x: float, y: float) -> None:
+        """
+        Move
+
+        :param x:
+            Position, metres
+        :param y:
+            Position, metres
+        :return:
+            None
+        """
         self.context.move_to(x=x, y=y)
 
-    def line_to(self, x, y):
+    def line_to(self, x: float, y: float) -> None:
+        """
+        Line element
+
+        :param x:
+            Position, metres
+        :param y:
+            Position, metres
+        :return:
+            None
+        """
         self.context.line_to(x=x, y=y)
 
-    def close_path(self):
+    def curve_to(self, x0: float, y0: float, x1: float, y1: float, x2: float, y2: float) -> None:
+        """
+        Bézier curve element
+
+        :param x0:
+            First control point, metres
+        :param y0:
+            First control point, metres
+        :param x1:
+            Second control point, metres
+        :param y1:
+            Second control point, metres
+        :param x2:
+            End point, metres
+        :param y2:
+            End point, metres
+        :return:
+            None
+        """
+        self.context.curve_to(x1=x0, y1=y0, x2=x1, y2=y1, x3=x2, y3=y2)
+
+    def close_path(self) -> None:
+        """
+        Close the current path.
+        """
         self.context.close_path()
 
-    def stroke(self, line_width=None, color=None, dotted=None):
+    def stroke(self, line_width: Optional[float] = None,
+               color: Optional[Sequence[float]] = None, dotted: Optional[bool] = None) -> None:
+        """
+        Stroke the current path
+        """
         if line_width is not None:
             self.set_line_width(line_width=line_width)
         if color is not None:
@@ -194,35 +245,77 @@ class GraphicsContext:
             self.set_line_style(dotted=dotted)
         self.context.stroke_preserve()
 
-    def fill(self, color=None):
+    def fill(self, color: Optional[Sequence[float]] = None) -> None:
+        """
+        Fill the current path
+        """
         if color is not None:
             self.set_color(color=color)
         self.context.fill_preserve()
 
-    def clip(self):
+    def clip(self) -> None:
+        """
+        Use the current path as a clipping region.
+        """
         self.context.clip()
 
-    def arc(self, centre_x, centre_y, radius, arc_from, arc_to):
+    def arc(self, centre_x: float, centre_y: float, radius: float, arc_from: float, arc_to: float) -> None:
+        """
+        Add an arc element to the current path.
+
+        :param centre_x:
+            The centre of the arc, metres
+        :param centre_y:
+            The centre of the arc, metres
+        :param radius:
+            The radius of the arc, metres
+        :param arc_from:
+            The angle where the arc is to start, radians
+        :param arc_to:
+            The angle where the arc is to end, radians
+        """
         self.context.arc(xc=centre_x, yc=centre_y, radius=radius, angle1=arc_from, angle2=arc_to)
 
-    def circle(self, centre_x, centre_y, radius):
+    def circle(self, centre_x: float, centre_y: float, radius: float) -> None:
+        """
+        Add an arc element to the current path.
+
+        :param centre_x:
+            The centre of the circles, metres
+        :param centre_y:
+            The centre of the circles, metres
+        :param radius:
+            The radius of the circles, metres
+        """
         self.arc(centre_x=centre_x, centre_y=centre_y, radius=radius, arc_from=0, arc_to=2 * pi)
 
-    def rectangle(self, x0, y0, x1, y1):
+    def rectangle(self, x0: float, y0: float, x1: float, y1: float) -> None:
+        """
+        Add a rectangle to the current path.
+
+        :param x0:
+            The left side of the box, metres
+        :param y0:
+            The top side of the box, metres
+        :param x1:
+            The right side of the box, metres
+        :param y1:
+            The bottom side of the box, metres
+        """
         self.context.rectangle(x=x0, y=y0, width=x1 - x0, height=y1 - y0)
 
-    def set_color(self, color):
+    def set_color(self, color: Sequence[float]) -> None:
         """
         Set the colour used for both stroke and fill operations.
 
         :param color:
-            Red/green/blue/alpha; floating point number between 0 and 1.
+            List of four float values: Red/green/blue/alpha. Each should be a float between 0 and 1.
         :return:
             None
         """
         self.context.set_source_rgba(red=color[0], green=color[1], blue=color[2], alpha=color[3])
 
-    def set_line_style(self, dotted=None):
+    def set_line_style(self, dotted: Optional[bool] = None) -> None:
         """
         Select the stroke style used to stroke lines.
 
@@ -239,27 +332,24 @@ class GraphicsContext:
         else:
             self.context.set_dash([])
 
-    def set_font_size(self, font_size):
+    def set_font_size(self, font_size: float) -> None:
         """
         Change the font size used to render text.
 
         :param font_size:
             Font size, relative to default
-        :return:
-            None
         """
         self.font_size = font_size
         self.context.set_font_size(font_size * self.base_font_size)
 
-    def set_font_style(self, italic=None, bold=None):
+    def set_font_style(self, italic: Optional[bool] = None, bold: Optional[bool] = None) -> None:
         """
         Sets the font style (i.e. bold or italic) used.
+
         :param italic:
             Boolean flag, indicating whether text should be italic. None indicates we preserve the existing setting.
         :param bold:
             Boolean flag, indicating whether text should be bold. None indicates we preserve the existing setting.
-        :return:
-            None
         """
         if italic is not None:
             self.font_italic = italic
@@ -271,7 +361,7 @@ class GraphicsContext:
                                       weight=cairo.FONT_WEIGHT_BOLD if self.font_bold else cairo.FONT_SLANT_NORMAL
                                       )
 
-    def set_line_width(self, line_width):
+    def set_line_width(self, line_width: float) -> None:
         """
         Sets the line width used to stroke paths.
 
@@ -282,9 +372,12 @@ class GraphicsContext:
         """
         self.context.set_line_width(width=line_width * self.base_line_width)
 
-    def text(self, text, x, y, h_align=0, v_align=0, gap=0, rotation=0):
+    def text(self, text: str, x: float, y: float,
+             h_align: int = 0, v_align: int = 0,
+             gap: float = 0, rotation: float = 0) -> None:
         """
         Add a text string to the drawing canvas.
+
         :param text:
             The string to write
         :param x:
@@ -303,12 +396,12 @@ class GraphicsContext:
             None
         """
 
-        text = str(text)
-        extent = self.measure_text(text=text)
+        text: str = str(text)
+        extent: Dict[str, float] = self.measure_text(text=text)
 
         # Cairo places top-left of text at specified point. For other alignments, we calculate where this point will be
-        offset_x = 0
-        offset_y = 0
+        offset_x: float = 0
+        offset_y: float = 0
         if h_align >= 0:
             offset_x -= extent['width'] / 2
         if h_align > 0:
@@ -326,9 +419,10 @@ class GraphicsContext:
         self.context.show_text(text=text)
         self.context.restore()
 
-    def measure_text(self, text):
+    def measure_text(self, text: str) -> Dict[str, float]:
         """
         Measure the dimensions of a string of text, as it would be rendered in the currently-selected font.
+
         :param text:
             Text string to render
         :return:
@@ -348,7 +442,8 @@ class GraphicsContext:
             "dy": dy
         }
 
-    def circular_text(self, text, centre_x, centre_y, radius, azimuth, spacing, size):
+    def circular_text(self, text: str, centre_x: float, centre_y: float,
+                      radius: float, azimuth: float, spacing: float, size: float) -> None:
         """
         Write a text string around a circular path.
 
@@ -373,20 +468,20 @@ class GraphicsContext:
         self.set_font_size(size)
 
         # First calculate total length of text
-        text_width = 0
+        text_width: float = 0
         for char in text:
             text_width += float(self.measure_text(text=char)['dx']) * 1.1
 
         # Work out the angular span of the text around the specified circular path
-        text_angular_width = text_width / radius
+        text_angular_width: float = text_width / radius
 
         # Work out the azimuth at which we need to start, in order to have centre of text at specified azimuth
-        current_azimuth = azimuth * unit_deg - spacing * text_angular_width / 2
+        current_azimuth: float = azimuth * unit_deg - spacing * text_angular_width / 2
 
         # Then render text, one character at a time
         for char in text:
-            dimensions = self.measure_text(text=char)
-            character_width = float(dimensions['dx']) * 1.1
+            dimensions: Dict[str, float] = self.measure_text(text=char)
+            character_width: float = float(dimensions['dx']) * 1.1
             self.text(text=char,
                       x=centre_x + cos(current_azimuth) * radius,
                       y=centre_y - sin(current_azimuth) * radius,
@@ -395,17 +490,20 @@ class GraphicsContext:
                       )
             current_azimuth += (character_width * spacing) / radius
 
-    def text_wrapped(self, text, x, y, width, justify=0, line_spacing=1.3, h_align=0, v_align=0, rotation=0):
+    def text_wrapped(self, text: str | Sequence, x: float, y: float, width: float,
+                     justify: int = 0, line_spacing: float = 1.3,
+                     h_align: int = 0, v_align: int = 0, rotation: float = 0) -> None:
         """
         Add a text string to the drawing canvas.
+
         :param text:
             The string to write
         :param x:
-            The horizontal position of the string
+            The horizontal position of the string, metres
         :param y:
-            The vertical position of the string
+            The vertical position of the string, metres
         :param width:
-            The maximum allowed length of each line
+            The maximum allowed length of each line, metres
         :param justify:
             The horizontal justification of the string: -1 left; 0 centred; 1 right
         :param line_spacing:
@@ -416,19 +514,17 @@ class GraphicsContext:
             The vertical alignment of the string: -1 top; 0 centred; 1 bottom
         :param rotation:
             The rotation angle of the text, radians
-        :return:
-            None
         """
 
         if not isinstance(text, (list, tuple)):
             text = [text]
 
         # Assemble a list of all the lines we are going to display
-        line_buffer = []
+        line_buffer: List[str] = []
 
         # Loop through each of the paragraphs of input text, one by one. They are supplied as a list or tuple.
         for paragraph in text:
-            line = ""
+            line: str = ""
             # Add each word in turn to the current line, until it becomes too long
             for word in paragraph.split():
                 line_new = "{} {}".format(line, word).strip()
@@ -443,8 +539,8 @@ class GraphicsContext:
             # Add last line of text to buffer
             line_buffer.append(line)
 
-        line_heights = [self.font_size * self.base_font_size * line_spacing for line in line_buffer]
-        total_height = sum(line_heights)
+        line_heights: List[float] = [self.font_size * self.base_font_size * line_spacing for line in line_buffer]
+        total_height: float = sum(line_heights)
 
         # Now draw text, line by line
         self.context.save()
@@ -467,13 +563,81 @@ class GraphicsContext:
 
         self.context.restore()
 
+    def paint_png_image(self, png_filename: str, x_left: float, y_top: float,
+                        target_width: float, target_height: float) -> bool:
+        """
+        Render a PNG image onto the Cairo canvas.
+
+        :param png_filename:
+            The filename of the PNG file to render
+        :param x_left:
+            The X coordinate of the left side of the image on the canvas, metres
+        :param y_top:
+            The Y coordinate of the top side of the image on the canvas, metres
+        :param target_width:
+            The intended width of the image, metres
+        :param target_height:
+            The intended height of the image, metres
+        :return:
+            Boolean flag indicating whether the image was successfully rendered
+        """
+
+        # Save the state of the display context
+        self.context.save()
+        try:
+            # Create a Cairo image surface with the PNG image on it
+            image_surface = cairo.ImageSurface.create_from_png(png_filename)
+
+            # Measure the PNG image
+            img_height = image_surface.get_height()
+            img_width = image_surface.get_width()
+
+            # Calculate proportional scaling to get the image to the desired size
+            width_ratio = float(target_width) / float(img_width)
+            height_ratio = float(target_height) / float(img_height)
+
+            # Scale image and add it to the canvas
+            self.context.translate(x_left, y_top)
+            self.context.scale(width_ratio, height_ratio)
+            self.context.set_source_surface(image_surface)
+
+            self.context.paint()
+            outcome = True
+        except:
+            logging.info("Failed to render PNG image")
+            outcome = False
+
+        # Make sure that we undo the coordinate transformation, even if the image render fails
+        self.context.restore()
+
+        # Return success flag
+        return outcome
+
+    def matrix_transformation_set(self, xx: float, yx: float, xy: float, yy: float, x0: float, y0: float,
+                                  centre_x: float, centre_y: float):
+        """
+        Apply a matrix transformation to the Cairo drawing context.
+
+        x_new = xx * x + xy * y + x0
+        y_new = yx * x + yy * y + y0
+        """
+        self.context.save()
+        self.context.translate(tx=centre_x, ty=centre_y)
+        self.context.transform(cairo.Matrix(xx=xx, yx=yx, xy=xy, yy=yy, x0=x0, y0=y0))
+
+    def matrix_transformation_restore(self):
+        """
+        Undo a matrix transformation to the Cairo drawing context.
+        """
+        self.context.restore()
+
 
 class BaseComponent:
     """
     A class wrapping a piece of code used to draw a single component of the model.
     """
 
-    def __init__(self, settings=None):
+    def __init__(self, settings: Optional[dict] = None):
         """
         A class wrapping a piece of code used to draw a single component of the model.
 
@@ -483,20 +647,20 @@ class BaseComponent:
 
         if settings is None:
             settings = {}
-        self.settings = settings
+        self.settings: dict = settings
 
-    def render_to_page(self, page, offset_x=0, offset_y=0, rotation=0):
+    def render_to_page(self, page: GraphicsPage, offset_x: float = 0, offset_y: float = 0, rotation: float = 0) -> None:
         """
         Render this component onto a Page object.
 
         :param page:
             The GraphicsPage we are going to draw onto
         :param offset_x:
-            The offset of this drawing from (0,0) on the page
+            The offset of this drawing from (0,0) on the page, metres
         :param offset_y:
-            The offset of this drawing from (0,0) on the page
+            The offset of this drawing from (0,0) on the page, metres
         :param rotation:
-            The rotation of this drawing
+            The rotation of this drawing, float
         """
 
         # Make sure that the page we're going to draw onto is of the correct type
@@ -507,7 +671,8 @@ class BaseComponent:
             # Render this item
             self.do_rendering(settings=self.settings, context=context)
 
-    def render_to_file(self, filename=None, img_format="png", dots_per_inch=dots_per_inch):
+    def render_to_file(self, filename: Optional[str] = None, img_format: str = "png",
+                       dots_per_inch: float = dots_per_inch) -> None:
         """
         Renders the component to an image file.
 
@@ -524,7 +689,7 @@ class BaseComponent:
         """
 
         # Look up the bounding box of the item we're about to draw
-        bounding_box = self.bounding_box(settings=self.settings)
+        bounding_box: Dict[str, float] = self.bounding_box(settings=self.settings)
 
         # If no filename is specified, then individual derived classes should specify a default
         if filename is None:
@@ -541,7 +706,7 @@ class BaseComponent:
                                 offset_x=-bounding_box['x_min'],
                                 offset_y=-bounding_box['y_min'])
 
-    def render_all_formats(self, filename=None, dots_per_inch=dots_per_inch):
+    def render_all_formats(self, filename: Optional[str] = None, dots_per_inch: float = dots_per_inch) -> None:
         """
         Quick shortcut to render this component in all the standard image formats.
 
@@ -562,7 +727,7 @@ class BaseComponent:
                                 img_format=img_format,
                                 dots_per_inch=dots_per_inch)
 
-    def bounding_box(self, settings):
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         This method is required to report the bounding box of the canvas area used by this item.
 
@@ -574,7 +739,7 @@ class BaseComponent:
         raise NotImplementedError("Derived classes of type <BaseComponent> must implement a method <bounding_box> "
                                   "which reports the area of canvas they require.")
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         """
         This method is required to report a default filename to use for this item, without file type suffix.
 
@@ -585,7 +750,7 @@ class BaseComponent:
                                   "<default_filename> which report a default filename to use for this item, without "
                                   "file type suffix.")
 
-    def do_rendering(self, settings, context):
+    def do_rendering(self, settings: dict, context: GraphicsContext) -> None:
         """
         This method is required to actually render this item.
 
@@ -605,14 +770,14 @@ class CompositeComponent(BaseComponent):
     A class allowing multiple components to be overlaid on a single canvas
     """
 
-    def __init__(self, components, settings=None):
-        self.components = components
+    def __init__(self, components: Sequence[BaseComponent], settings: Optional[dict] = None):
+        self.components: Sequence[BaseComponent] = components
         super(CompositeComponent, self).__init__(settings=settings)
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         return "composite_page"
 
-    def bounding_box(self, settings):
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Work out overall bounding box of all items when constituent components are overlaid.
 
@@ -620,7 +785,8 @@ class CompositeComponent(BaseComponent):
             A dictionary of settings required by the renderer.
         """
 
-        bounding_boxes = [item.bounding_box(settings=item.settings) for item in self.components]
+        bounding_boxes: Sequence[Dict[str, float]] = [item.bounding_box(settings=item.settings)
+                                                      for item in self.components]
 
         return {
             'x_min': min([item['x_min'] for item in bounding_boxes]),
@@ -629,9 +795,9 @@ class CompositeComponent(BaseComponent):
             'y_max': max([item['y_max'] for item in bounding_boxes]),
         }
 
-    def do_rendering(self, settings, context):
+    def do_rendering(self, settings: dict, context: GraphicsContext) -> None:
         """
-        Render each of the sub-components we are overlaying in turn.
+        Render each of the subcomponents we are overlaying in turn.
 
         :param settings:
             A dictionary of settings required by the renderer.
