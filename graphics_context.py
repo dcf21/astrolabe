@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -68,7 +68,7 @@ class GraphicsPage:
         self.width: int = int(width * self.dots_per_metre)  # pixels
         self.height: int = int(height * self.dots_per_metre)  # pixels
 
-        self.surface = None
+        self.surface: Optional[cairo.Surface] = None
         if self.format == "pdf":
             self.surface = cairo.PDFSurface(self.output, self.width, self.height)
         elif self.format == "png":
@@ -78,7 +78,7 @@ class GraphicsPage:
         else:
             assert False, "Unknown image output format {}".format(self.format)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """
         Save the canvas we have drawn to disk
 
@@ -112,7 +112,7 @@ class GraphicsPage:
         self.__del__()
 
     @staticmethod
-    def supported_formats():
+    def supported_formats() -> Sequence[str]:
         return "pdf", "png", "svg"
 
 
@@ -152,7 +152,7 @@ class GraphicsContext:
         self.line_dotted: bool = False
 
         # Create Cairo context with default settings for requested canvas
-        self.context = cairo.Context(target=page.surface)
+        self.context: cairo.Context = cairo.Context(target=page.surface)
         self.context.scale(sx=page.dots_per_metre, sy=page.dots_per_metre)
         self.context.translate(tx=offset_x, ty=offset_y)
         self.context.rotate(radians=rotation * unit_deg)
@@ -167,13 +167,13 @@ class GraphicsContext:
     def __exit__(self, err_type, err_value, err_tb):
         pass
 
-    def begin_path(self):
+    def begin_path(self) -> None:
         """
         Begin a new path.
         """
         self.context.new_path()
 
-    def begin_sub_path(self):
+    def begin_sub_path(self) -> None:
         """
         Begin a new closed shape within the current path
         """
@@ -366,7 +366,7 @@ class GraphicsContext:
         Sets the line width used to stroke paths.
 
         :param line_width:
-            Line width, relative to the base line width defined in <constants.py>
+            Line width, relative to the base line-width defined in <constants.py>
         :return:
             None
         """
@@ -547,11 +547,11 @@ class GraphicsContext:
         self.context.translate(tx=x, ty=y)
         self.context.rotate(radians=rotation)
 
-        horizontal_anchor = justify - h_align
-        x_anchor = (width / 2) * horizontal_anchor
+        horizontal_anchor: int = justify - h_align
+        x_anchor: float = (width / 2) * horizontal_anchor
 
         if v_align > 0:
-            y_anchor = 0
+            y_anchor: float = 0
         elif v_align == 0:
             y_anchor = -total_height / 2
         else:
@@ -586,15 +586,15 @@ class GraphicsContext:
         self.context.save()
         try:
             # Create a Cairo image surface with the PNG image on it
-            image_surface = cairo.ImageSurface.create_from_png(png_filename)
+            image_surface: cairo.ImageSurface = cairo.ImageSurface.create_from_png(png_filename)
 
             # Measure the PNG image
-            img_height = image_surface.get_height()
-            img_width = image_surface.get_width()
+            img_height: int = image_surface.get_height()
+            img_width: int = image_surface.get_width()
 
             # Calculate proportional scaling to get the image to the desired size
-            width_ratio = float(target_width) / float(img_width)
-            height_ratio = float(target_height) / float(img_height)
+            width_ratio: float = float(target_width) / float(img_width)
+            height_ratio: float = float(target_height) / float(img_height)
 
             # Scale image and add it to the canvas
             self.context.translate(x_left, y_top)
@@ -602,7 +602,7 @@ class GraphicsContext:
             self.context.set_source_surface(image_surface)
 
             self.context.paint()
-            outcome = True
+            outcome: bool = True
         except:
             logging.info("Failed to render PNG image")
             outcome = False
@@ -614,7 +614,7 @@ class GraphicsContext:
         return outcome
 
     def matrix_transformation_set(self, xx: float, yx: float, xy: float, yy: float, x0: float, y0: float,
-                                  centre_x: float, centre_y: float):
+                                  centre_x: float, centre_y: float) -> None:
         """
         Apply a matrix transformation to the Cairo drawing context.
 
@@ -625,7 +625,7 @@ class GraphicsContext:
         self.context.translate(tx=centre_x, ty=centre_y)
         self.context.transform(cairo.Matrix(xx=xx, yx=yx, xy=xy, yy=yy, x0=x0, y0=y0))
 
-    def matrix_transformation_restore(self):
+    def matrix_transformation_restore(self) -> None:
         """
         Undo a matrix transformation to the Cairo drawing context.
         """

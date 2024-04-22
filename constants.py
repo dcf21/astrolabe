@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -23,34 +23,34 @@ The file contains global settings for the astrolabe.
 from math import pi
 
 # Units
-dots_per_inch = 200
+dots_per_inch: float = 200
 
-unit_m = 1.
-unit_cm = 1. / 100
-unit_mm = 1. / 1000
+unit_m: float = 1.
+unit_cm: float = 1. / 100
+unit_mm: float = 1. / 1000
 
 # Angle conversion
-unit_deg = float(pi / 180)
-unit_rev = 2. * pi
+unit_deg: float = float(pi / 180)
+unit_rev: float = 2. * pi
 
 # Margins around output
-margin_fraction = 1.02
+margin_fraction: float = 1.02
 
 # Outer radius of astrolabe
-r_1 = 8.5 * unit_cm
+r_1: float = 8.5 * unit_cm
 
 # Distance between circles drawn on back of mother
-d_12 = 0.07 * r_1
+d_12: float = 0.07 * r_1
 
 # Font size
-font_size_base = 3.2 * unit_mm
-line_width_base = 0.2 * unit_mm
+font_size_base: float = 3.2 * unit_mm
+line_width_base: float = 0.2 * unit_mm
 
 # Size of tab into which climate slots
-tab_size = 5 * unit_deg
+tab_size: float = 5 * unit_deg
 
 # Scaling factor for size of hole in middle of astrolabe
-centre_scaling = 1 / 2.5 * 0.6
+centre_scaling: float = 1 / 2.5 * 0.6
 
 # Inclination of the ecliptic
-inclination_ecliptic = 23.5
+inclination_ecliptic: float = 23.5

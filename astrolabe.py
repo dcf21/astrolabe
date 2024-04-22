@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -42,16 +42,19 @@ from settings import fetch_command_line_arguments
 os.system("rm -Rf output")
 os.system("mkdir -p output/astrolabes output/astrolabe_parts")
 
-arguments = fetch_command_line_arguments()
-theme = arguments['theme']
+arguments: dict[str, int | str] = fetch_command_line_arguments()
+theme: str = arguments['theme']
 
 # Render astrolabe in all available languages
+language: str
 for language in text.text:
 
     # Render simplified and full astrolabes
+    astrolabe_type: str
     for astrolabe_type in ["full", "simplified"]:
 
         # Render climates for latitudes at 5-degree spacings from 10 deg -- 85 deg, plus 52N
+        latitude: float
         for latitude in list(range(-80, 90, 5)) + [52]:
 
             # Do not make equatorial astrolabes, as they don't really work
@@ -59,10 +62,10 @@ for language in text.text:
                 continue
 
             # Boolean flag for which hemisphere we're in
-            southern = latitude < 0
+            southern: bool = latitude < 0
 
             # A dictionary of common substitutions
-            subs = {
+            subs: dict[str, str | float] = {
                 "dir_parts": "output/astrolabe_parts",
                 "dir_out": "output/astrolabes",
                 "abs_lat": abs(latitude),
@@ -72,7 +75,7 @@ for language in text.text:
                 "lang_short": "" if language == "en" else "_{}".format(language)
             }
 
-            settings = {
+            settings: dict[str, str | float] = {
                 'language': language,
                 "astrolabe_type": astrolabe_type,
                 'latitude': latitude,

@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -24,7 +24,7 @@ Render the rule and the alidade of the astrolabe.
 from math import sin, tan
 
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12
-from graphics_context import BaseComponent
+from graphics_context import BaseComponent, GraphicsContext
 from settings import fetch_command_line_arguments
 from themes import themes
 
@@ -34,13 +34,13 @@ class Rule(BaseComponent):
     Render the rule and the alidade of the astrolabe.
     """
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         """
         Return the default filename to use when saving this component.
         """
         return "rule"
 
-    def bounding_box(self, settings):
+    def bounding_box(self, settings: dict) -> dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -56,7 +56,7 @@ class Rule(BaseComponent):
             'y_max': r_1 * 1.2
         }
 
-    def do_rendering(self, settings, context):
+    def do_rendering(self, settings: dict, context: GraphicsContext) -> None:
         """
         This method is required to actually render this item.
 
@@ -68,32 +68,32 @@ class Rule(BaseComponent):
             None
         """
 
-        is_southern = settings['latitude'] < 0
-        theme = themes[settings['theme']]
+        is_southern: bool = settings['latitude'] < 0
+        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 
-        margin = 2 * unit_cm
+        margin: float = 2 * unit_cm
 
         # Define the radii of all the concentric circles to be drawn on front of mother
 
         # Outer radius of rete
-        r_2 = r_1 - d_12 * 3 - unit_mm
+        r_2: float = r_1 - d_12 * 3 - unit_mm
 
         # Radius of central hole
-        r_3 = d_12 * centre_scaling
+        r_3: float = d_12 * centre_scaling
 
         # Radius of equator
-        r_4 = r_2 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
+        r_4: float = r_2 * tan((90 - inclination_ecliptic) / 2 * unit_deg)
 
         # Width of alidade
-        r_6 = 0.8 * unit_cm
+        r_6: float = 0.8 * unit_cm
 
         # Outer radius of shadow scale
-        r_12 = r_1 - d_12 * 10
+        r_12: float = r_1 - d_12 * 10
 
         # Subroutine to draw outlines of rule and the alidade
-        def rule_draw(context, xpos, ypos, sight):
+        def rule_draw(context: GraphicsContext, xpos: float, ypos: float, sight: bool) -> None:
             # Draw central hole
             context.begin_path()
             context.circle(centre_x=xpos, centre_y=ypos, radius=r_3)
@@ -132,7 +132,7 @@ class Rule(BaseComponent):
                 context.stroke()
 
         # Draw outlines of rule and the alidade
-        separation = 2.2 * unit_cm
+        separation: float = 2.2 * unit_cm
 
         context.set_font_size(0.9)
 
@@ -145,16 +145,16 @@ class Rule(BaseComponent):
         context.text(text="(b) Alidade", x=separation - 7 * unit_mm, y=r_2 + margin + 1.5 * r_6)
 
         # Draw declination scale on rule
-        major_tick_length = 4 * unit_mm
-        minor_tick_length = 2 * unit_mm
+        major_tick_length: float = 4 * unit_mm
+        minor_tick_length: float = 2 * unit_mm
         if not is_southern:
             context.set_font_size(1.0)
         else:
             context.set_font_size(0.7)
 
         for dec in range(-25, 71, 5):
-            theta = (90 - dec) * unit_deg / 2
-            r = r_4 * tan(theta)
+            theta: float = (90 - dec) * unit_deg / 2
+            r: float = r_4 * tan(theta)
             if is_southern:
                 dec *= -1
             if (dec < 60) and (dec % 10 == 0):
@@ -184,7 +184,7 @@ class Rule(BaseComponent):
             context.set_font_size(1.0)
 
             for i in range(20, 91, 5):
-                r = r_12 * sin(i * unit_deg)
+                r: float = r_12 * sin(i * unit_deg)
                 context.begin_path()
                 context.move_to(x=separation, y=-r)
                 context.line_to(x=separation - major_tick_length / 2, y=-r)
@@ -193,7 +193,7 @@ class Rule(BaseComponent):
                 context.stroke()
 
             for i in [20, 35, 50, 80]:
-                r = r_12 * sin(i * unit_deg)
+                r: float = r_12 * sin(i * unit_deg)
 
                 context.begin_path()
                 context.move_to(x=separation, y=-r)

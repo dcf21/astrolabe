@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -38,13 +38,13 @@ class MotherBack(BaseComponent):
     Render the back of the mother of the astrolabe.
     """
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         """
         Return the default filename to use when saving this component.
         """
         return "mother_back"
 
-    def bounding_box(self, settings):
+    def bounding_box(self, settings: dict) -> dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -54,7 +54,7 @@ class MotherBack(BaseComponent):
             Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
 
-        r_outer = r_1 + 0.4 * unit_cm
+        r_outer: float = r_1 + 0.4 * unit_cm
 
         return {
             'x_min': -r_outer,

@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2023 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -24,7 +24,7 @@ Render the front of the mother of the astrolabe.
 from math import pi, sin, cos, acos, floor
 
 from constants import unit_deg, unit_rev, unit_cm, centre_scaling, r_1, d_12, tab_size
-from graphics_context import BaseComponent
+from graphics_context import BaseComponent, GraphicsContext
 from numpy import arange
 from settings import fetch_command_line_arguments
 from themes import themes
@@ -35,13 +35,13 @@ class MotherFront(BaseComponent):
     Render the front of the mother of the astrolabe.
     """
 
-    def default_filename(self):
+    def default_filename(self) -> str:
         """
         Return the default filename to use when saving this component.
         """
         return "mother_front"
 
-    def bounding_box(self, settings):
+    def bounding_box(self, settings: dict) -> dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -51,7 +51,7 @@ class MotherFront(BaseComponent):
          Dictionary with the elements 'x_min', 'x_max', 'y_min' and 'y_max' set
         """
 
-        r_outer = r_1 + 0.5 * unit_cm
+        r_outer: float = r_1 + 0.5 * unit_cm
 
         return {
             'x_min': -r_outer,
@@ -60,7 +60,7 @@ class MotherFront(BaseComponent):
             'y_max': r_outer
         }
 
-    def do_rendering(self, settings, context):
+    def do_rendering(self, settings: dict, context: GraphicsContext) -> None:
         """
         This method is required to actually render this item.
 
@@ -72,27 +72,27 @@ class MotherFront(BaseComponent):
             None
         """
 
-        is_southern = settings['latitude'] < 0
-        theme = themes[settings['theme']]
+        is_southern: bool = settings['latitude'] < 0
+        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 
         # Define the radii of all the concentric circles to be drawn on front of mother
 
         # Scale of letters around the edge
-        r_2 = r_1 - d_12 * 1.5
+        r_2: float = r_1 - d_12 * 1.5
 
         # Protractor scale
-        r_3 = r_2 - d_12
+        r_3: float = r_2 - d_12
 
         # Fine divisions
-        r_4 = r_3 - d_12 / 2
+        r_4: float = r_3 - d_12 / 2
 
         # Central hole
-        r_5 = d_12 * centre_scaling
+        r_5: float = d_12 * centre_scaling
 
         # Draw the handle at the top of the astrolabe
-        ang = 180 * unit_deg - acos(unit_cm / r_1)
+        ang: float = 180 * unit_deg - acos(unit_cm / r_1)
         context.begin_path()
         context.arc(centre_x=0, centre_y=-r_1, radius=2 * unit_cm,
                     arc_from=-ang - pi / 2, arc_to=ang - pi / 2)
@@ -101,6 +101,7 @@ class MotherFront(BaseComponent):
         context.stroke()
 
         # Draw circles 1-5 onto front of mother
+        radius: float
         for radius in (r_1, r_2, r_3, r_5):
             context.begin_path()
             context.circle(centre_x=0, centre_y=0, radius=radius)
@@ -113,6 +114,7 @@ class MotherFront(BaseComponent):
         context.stroke()
 
         # Between circles 2 and 4, mark 5-degree intervals
+        theta: float
         for theta in arange(5 * unit_deg, 359.9 * unit_deg, 5 * unit_deg):
             context.begin_path()
             context.move_to(x=r_2 * sin(theta), y=-r_2 * cos(theta))
@@ -127,11 +129,11 @@ class MotherFront(BaseComponent):
             context.stroke()
 
         # Between circles 2 and 3, label every 10 degrees
-        rt_1 = (r_2 + r_3) / 2  # Radius at which to place text labels every 10 degrees
+        rt_1: float = (r_2 + r_3) / 2  # Radius at which to place text labels every 10 degrees
         for theta in arange(-180 * unit_deg, 179 * unit_deg, 10 * unit_deg):
             # Work out angle to display around the rim: counts from 0 to 90 four times, not -180 to 180 degrees!
             if theta < -179 * unit_deg:
-                theta_disp = theta
+                theta_disp: float = theta
             elif theta < - 90 * unit_deg:
                 theta_disp = theta + 180 * unit_deg
             elif theta < 0 * unit_deg:
@@ -148,7 +150,7 @@ class MotherFront(BaseComponent):
 
             # Display right-hand zero as a simple one-digit zero
             if theta_disp == 0:
-                theta2 = theta
+                theta2: float = theta
                 context.text(text="0",
                              x=rt_1 * cos(theta2), y=-rt_1 * sin(theta2),
                              h_align=0, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
@@ -173,7 +175,7 @@ class MotherFront(BaseComponent):
                              h_align=-1, v_align=0, gap=0, rotation=-theta - 90 * unit_deg)
 
         # Between circles 1 and 2, label 24 hours with large letters. A cross marks midnight.
-        rt_1 = r_1 * 0.55 + r_2 * 0.45
+        rt_1: float = r_1 * 0.55 + r_2 * 0.45
         for i, t in enumerate(["\u2720", "A", "B", "C", "D", "E", "F", "G", "H", "I", "K", "L", "M", "N",
                                "O", "P", "Q", "R", "S", "T", "U", "X", "Y", "Z"]):
             theta = i / 24 * unit_rev
