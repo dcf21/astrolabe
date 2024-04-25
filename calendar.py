@@ -21,15 +21,16 @@ Various helper functions for turning calendar dates into Unix times, and vice ve
 """
 
 from math import floor, fmod
+from typing import List, Tuple
 
 # The day of the year on which each month begins
-month_day: list[int] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 999]
+month_day: List[int] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 999]
 
 # The three-letter names of each month of the year
-month_name: list[str] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+month_name: List[str] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 # The full names of each month of the year
-month_name_full: list[str] = ["January", "February", "March", "April", "May", "June",
+month_name_full: List[str] = ["January", "February", "March", "April", "May", "June",
                               "July", "August", "September", "October", "November", "December"]
 
 
@@ -72,7 +73,7 @@ def julian_day(year: int, month: int, day: int, hour: int = 0, minute: int = 0, 
     return jd + day_fraction
 
 
-def inv_julian_day(jd: float) -> tuple[int, int, int, int, int, float]:
+def inv_julian_day(jd: float) -> Tuple[int, int, int, int, int, float]:
     """
     Convert a Julian date into a calendar date.
 

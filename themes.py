@@ -16,7 +16,9 @@
 
 # ----------------------------------------------------------------------------
 
-themes: dict[str, dict[str, tuple[float, float, float, float]]] = {
+from typing import Dict, Tuple
+
+themes: Dict[str, Dict[str, Tuple[float, float, float, float]]] = {
     "default":
         {
             "background": (1, 1, 1, 0),

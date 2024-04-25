@@ -22,6 +22,7 @@ Render the climate of the astrolabe.
 """
 
 from math import pi, sin, tan, cos, atan2, hypot, acos
+from typing import Dict
 
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12, tab_size
 from graphics_context import BaseComponent, GraphicsContext
@@ -42,7 +43,7 @@ class Climate(BaseComponent):
         """
         return "climate"
 
-    def bounding_box(self, settings: dict) -> dict[str, float]:
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -76,7 +77,7 @@ class Climate(BaseComponent):
         is_southern: bool = settings['latitude'] < 0
         latitude: float = abs(settings['latitude'])
         language: str = settings['language']
-        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
+        theme: Dict[str, Tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 

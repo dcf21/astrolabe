@@ -22,10 +22,10 @@ This script takes the Yale Bright Star Catalogue, and formats it into a Python l
 
 import re
 
-from typing import Final
+from typing import Dict, Final, List, Union
 
 
-def fetch_bright_star_list() -> dict[str, list | dict]:
+def fetch_bright_star_list() -> Dict[str, Union[list, dict]]:
     """
     Read the Yale Bright Star Catalogue from disk, and return it as a list of stars.
 
@@ -39,10 +39,10 @@ def fetch_bright_star_list() -> dict[str, list | dict]:
     lyr: Final[float] = 9.4605284e15
 
     # Build a dictionary of stars, indexed by HD number
-    stars: dict[int, tuple[float, float, float, str, str, str, str]] = {}
+    stars: Dict[int, Tuple[float, float, float, str, str, str, str]] = {}
 
     # Convert three-letter abbreviations of Greek letters into UTF-8
-    greek_alphabet: dict[str, str] = {
+    greek_alphabet: Dict[str, str] = {
         'Alp': '\u03b1', 'Bet': '\u03b2', 'Gam': '\u03b3', 'Del': '\u03b4', 'Eps': '\u03b5',
         'Zet': '\u03b6', 'Eta': '\u03b7', 'The': '\u03b8', 'Iot': '\u03b9', 'Kap': '\u03ba',
         'Lam': '\u03bb', 'Mu': '\u03bc', 'Nu': '\u03bd', 'Xi': '\u03be', 'Omi': '\u03bf',
@@ -50,10 +50,10 @@ def fetch_bright_star_list() -> dict[str, list | dict]:
         'Phi': '\u03c6', 'Chi': '\u03c7', 'Psi': '\u03c8', 'Ome': '\u03c9'}
 
     # Superscript numbers which we may place after Greek letters to form the Flamsteed designations of stars
-    star_suffices: dict[str, str] = {'1': '\u00B9', '2': '\u00B2', '3': '\u00B3'}
+    star_suffices: Dict[str, str] = {'1': '\u00B9', '2': '\u00B2', '3': '\u00B3'}
 
     # Look up the common names of bright stars
-    star_names: dict[int, str] = {}
+    star_names: Dict[int, str] = {}
     with open("raw_data/bright_star_names.dat", "rt") as f_in:
         for line in f_in:
             # Ignore blank lines and comment lines
@@ -138,7 +138,7 @@ def fetch_bright_star_list() -> dict[str, list | dict]:
             # Build a dictionary is stars, indexed by HD number
             stars[hd] = (ra, dec, mag, name_bayer, name_bayer_full, name_english, name_flamsteed_full)
 
-    hd_numbers: list[int] = list(stars.keys())
+    hd_numbers: List[int] = list(stars.keys())
     hd_numbers.sort()
 
     return {

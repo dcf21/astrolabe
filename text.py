@@ -18,7 +18,9 @@
 
 # A list of text strings, which we can render in various languages
 
-text: dict[str, dict] = {
+from typing import Dict
+
+text: Dict[str, dict] = {
     "en":
         {
             "months": [

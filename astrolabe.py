@@ -28,6 +28,7 @@ to build an astrolabe for that latitude, and instructions as to how to put them 
 import os
 import subprocess
 import time
+from typing import Dict, Union
 
 import text
 from climate import Climate
@@ -42,7 +43,7 @@ from settings import fetch_command_line_arguments
 os.system("rm -Rf output")
 os.system("mkdir -p output/astrolabes output/astrolabe_parts")
 
-arguments: dict[str, int | str] = fetch_command_line_arguments()
+arguments: Dict[str, Union[int, str]] = fetch_command_line_arguments()
 theme: str = arguments['theme']
 
 # Render astrolabe in all available languages
@@ -65,7 +66,7 @@ for language in text.text:
             southern: bool = latitude < 0
 
             # A dictionary of common substitutions
-            subs: dict[str, str | float] = {
+            subs: Dict[str, Union[str, float]] = {
                 "dir_parts": "output/astrolabe_parts",
                 "dir_out": "output/astrolabes",
                 "abs_lat": abs(latitude),
@@ -75,7 +76,7 @@ for language in text.text:
                 "lang_short": "" if language == "en" else "_{}".format(language)
             }
 
-            settings: dict[str, str | float] = {
+            settings: Dict[str, Union[str, float]] = {
                 'language': language,
                 "astrolabe_type": astrolabe_type,
                 'latitude': latitude,

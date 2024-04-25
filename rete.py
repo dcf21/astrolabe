@@ -22,6 +22,7 @@ Render the rete of the astrolabe.
 """
 
 from math import pi, sin, tan, cos, asin, floor
+from typing import Dict
 
 from bright_stars_process import fetch_bright_star_list
 from constants import unit_deg, unit_rev, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12, line_width_base
@@ -43,7 +44,7 @@ class Rete(BaseComponent):
         """
         return "rete"
 
-    def bounding_box(self, settings: dict) -> dict[str, float]:
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -76,7 +77,7 @@ class Rete(BaseComponent):
 
         is_southern: bool = settings['latitude'] < 0
         language: str = settings['language']
-        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
+        theme: Dict[str, Tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 

@@ -22,6 +22,7 @@ Render the back of the mother of the astrolabe.
 """
 
 from math import pi, sin, tan, cos, acos, atan, atan2, floor
+from typing import Dict
 
 from constants import unit_deg, unit_rev, unit_cm, unit_mm, centre_scaling, r_1, d_12
 from graphics_context import BaseComponent
@@ -44,7 +45,7 @@ class MotherBack(BaseComponent):
         """
         return "mother_back"
 
-    def bounding_box(self, settings: dict) -> dict[str, float]:
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 

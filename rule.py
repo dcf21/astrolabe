@@ -22,6 +22,7 @@ Render the rule and the alidade of the astrolabe.
 """
 
 from math import sin, tan
+from typing import Dict, Tuple
 
 from constants import unit_deg, unit_cm, unit_mm, inclination_ecliptic, centre_scaling, r_1, d_12
 from graphics_context import BaseComponent, GraphicsContext
@@ -40,7 +41,7 @@ class Rule(BaseComponent):
         """
         return "rule"
 
-    def bounding_box(self, settings: dict) -> dict[str, float]:
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -69,7 +70,7 @@ class Rule(BaseComponent):
         """
 
         is_southern: bool = settings['latitude'] < 0
-        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
+        theme: Dict[str, Tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 

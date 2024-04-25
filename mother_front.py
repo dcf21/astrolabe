@@ -22,6 +22,7 @@ Render the front of the mother of the astrolabe.
 """
 
 from math import pi, sin, cos, acos, floor
+from typing import Dict, Tuple
 
 from constants import unit_deg, unit_rev, unit_cm, centre_scaling, r_1, d_12, tab_size
 from graphics_context import BaseComponent, GraphicsContext
@@ -41,7 +42,7 @@ class MotherFront(BaseComponent):
         """
         return "mother_front"
 
-    def bounding_box(self, settings: dict) -> dict[str, float]:
+    def bounding_box(self, settings: dict) -> Dict[str, float]:
         """
         Return the bounding box of the canvas area used by this component.
 
@@ -73,7 +74,7 @@ class MotherFront(BaseComponent):
         """
 
         is_southern: bool = settings['latitude'] < 0
-        theme: dict[str, tuple[float, float, float, float]] = themes[settings['theme']]
+        theme: Dict[str, Tuple[float, float, float, float]] = themes[settings['theme']]
 
         context.set_color(color=theme['lines'])
 
