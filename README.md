@@ -18,6 +18,34 @@ See <https://in-the-sky.org/astrolabe/index.php> for more information, including
 
 To make astrolabe models for all latitudes, at five degree intervals, run the shell script `main_astrolabe.sh`.
 
+### Running in Docker
+
+The scripts need Python 3 with the `cairocffi`, `numpy` and `scipy` packages,
+and LaTeX to assemble the final PDF documents. Rather than installing these
+yourself, you can run the scripts inside a Docker container, using the
+`Dockerfile` and `docker-compose.yml` in this repository. The container uses
+Python 3.14 on Debian.
+
+To build the Docker image, and then make the astrolabe models inside a
+container, run:
+
+```
+docker compose build
+docker compose run --rm python
+```
+
+This runs `main_astrolabe.sh --theme default` inside the container, and removes
+the container when it finishes. Making models for every latitude takes several
+minutes. The repository directory is shared with the container, so the output
+appears in the `output` directory, replacing any previous output.
+
+The container runs as root, so the files it creates will be owned by root. To
+create them as your own user instead, run:
+
+```
+docker compose run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp python
+```
+
 ### Caveat
 
 The astrolabe, as a medieval instrument, was never intended to be used close to the equator. It is not possible to make astrolabes for latitudes between 15&deg;N and 15&deg;S, as the celestial pole is too close to the horizon.
