@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2026 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -52,7 +52,7 @@ text: Dict[str, dict] = {
                 {"name": "Pisces", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2010\u20132024",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132027",
             "climate_latitude": "Climate prepared for latitude {:02d}{:s}",
             "name": "Name",
             "directions": ["N", "NNW", "NW", "WNW", "W", "WSW", "SW", "SSW",
@@ -90,7 +90,7 @@ text: Dict[str, dict] = {
                 {"name": "Poissons", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2010\u20132024",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132027",
             "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}",
             "name": "Nom",
             "directions": ["N", "NNO", "NO", "ONO", "O", "OSO", "SO", "SSO",
@@ -128,7 +128,7 @@ text: Dict[str, dict] = {
                 {"name": "Fiskarna", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2010\u20132024",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132027",
             "climate_latitude": "Climate prepared for latitude {:02d}\u00b0{:s}",
             "name": "Namn",
             "directions": ["N", "NNV", "NV", "VNV", "V", "VSV", "SV", "SSV",
@@ -166,7 +166,7 @@ text: Dict[str, dict] = {
                 {"name": "Fische", "symbol": "\u2653"},
             ],
             "url": "https://in-the-sky.org/astrolabe/index.html",
-            "copyright": "\u00A9 Dominic Ford 2010\u20132024",
+            "copyright": "\u00A9 Dominic Ford 2010\u20132027",
             "climate_latitude": "Klima vorbereited für geographische Breite {:02d}{:s}",
             "name": "Name",
             "directions": ["N", "NNW", "NW", "WNW", "W", "WSW", "SW", "SSW",

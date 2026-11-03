@@ -3,7 +3,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2026 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -23,8 +23,9 @@ A thin wrapper to produce vector graphics using cairo.
 import logging
 
 from math import pi, sin, cos
+from types import TracebackType
 
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Type, Union
 
 import cairocffi as cairo
 from constants import unit_deg, unit_mm, font_size_base, line_width_base, dots_per_inch
@@ -41,7 +42,7 @@ class GraphicsPage:
                  output: str = "page",
                  width: float = 0.15,
                  height: float = 0.15,
-                 dots_per_inch: float = dots_per_inch):
+                 dots_per_inch: float = dots_per_inch) -> None:
         """
         A thin wrapper to produce vector graphics using cairo. This class represents a page / image file we are going
         to draw onto.
@@ -105,14 +106,39 @@ class GraphicsPage:
         self.surface.finish()
         self.surface = None
 
-    def __enter__(self):
+    def __enter__(self) -> "GraphicsPage":
+        """
+        Called at the start of a with block
+
+        :return:
+            This GraphicsPage instance
+        """
         return self
 
-    def __exit__(self, err_type, err_value, err_tb):
+    def __exit__(self, err_type: Optional[Type[BaseException]], err_value: Optional[BaseException],
+                 err_tb: Optional[TracebackType]) -> None:
+        """
+        Called at the end of a with block. Writes the page to disk.
+
+        :param err_type:
+            The type of any exception raised within the with block, or None.
+        :param err_value:
+            Any exception raised within the with block, or None.
+        :param err_tb:
+            The traceback of any exception raised within the with block, or None.
+        :return:
+            None
+        """
         self.__del__()
 
     @staticmethod
     def supported_formats() -> Sequence[str]:
+        """
+        List the image formats that we are able to produce.
+
+        :return:
+            List of supported image formats
+        """
         return "pdf", "png", "svg"
 
 
@@ -126,7 +152,7 @@ class GraphicsContext:
                  page: GraphicsPage,
                  offset_x: float = 0,
                  offset_y: float = 0,
-                 rotation: float = 0):
+                 rotation: float = 0) -> None:
         """
         A thin wrapper to produce vector graphics using cairo. This class provides a drawing context that we can use to
         draw a figure onto a page.
@@ -147,6 +173,7 @@ class GraphicsContext:
         self.base_line_width: float = line_width_base
         self.base_font_size: float = font_size_base
         self.font_size: Optional[float] = False
+        self.font_family: str = "FreeSerif"
         self.font_bold: bool = False
         self.font_italic: bool = False
         self.line_dotted: bool = False
@@ -161,10 +188,29 @@ class GraphicsContext:
         self.set_font_size(font_size=1)
         self.context.set_fill_rule(fill_rule=cairo.FILL_RULE_EVEN_ODD)
 
-    def __enter__(self):
+    def __enter__(self) -> "GraphicsContext":
+        """
+        Called at the start of a with block
+
+        :return:
+            This GraphicsContext instance
+        """
         return self
 
-    def __exit__(self, err_type, err_value, err_tb):
+    def __exit__(self, err_type: Optional[Type[BaseException]], err_value: Optional[BaseException],
+                 err_tb: Optional[TracebackType]) -> None:
+        """
+        Called at the end of a with block. No action is required.
+
+        :param err_type:
+            The type of any exception raised within the with block, or None.
+        :param err_value:
+            Any exception raised within the with block, or None.
+        :param err_tb:
+            The traceback of any exception raised within the with block, or None.
+        :return:
+            None
+        """
         pass
 
     def begin_path(self) -> None:
@@ -233,21 +279,39 @@ class GraphicsContext:
         self.context.close_path()
 
     def stroke(self, line_width: Optional[float] = None,
-               color: Optional[Sequence[float]] = None, dotted: Optional[bool] = None) -> None:
+               color: Optional[Sequence[float]] = None, dotted: Optional[bool] = None,
+               dash_pattern: Optional[List[float]] = None) -> None:
         """
-        Stroke the current path
+        Stroke the current path. The path is preserved afterwards, so that it can subsequently be filled or used
+        as a clipping region.
+
+        :param line_width:
+            If set, the line width to use, relative to the base line width defined in <constants.py>
+        :param color:
+            If set, the colour to use, as a list of four float values: Red/green/blue/alpha.
+        :param dotted:
+            If set, a boolean flag indicating whether lines should be dotted or continuous.
+        :param dash_pattern:
+            Optional list of dash/gap lengths in metres, used if <dotted> is True.
+        :return:
+            None
         """
         if line_width is not None:
             self.set_line_width(line_width=line_width)
         if color is not None:
             self.set_color(color=color)
         if dotted is not None:
-            self.set_line_style(dotted=dotted)
+            self.set_line_style(dotted=dotted, dash_pattern=dash_pattern)
         self.context.stroke_preserve()
 
     def fill(self, color: Optional[Sequence[float]] = None) -> None:
         """
         Fill the current path
+
+        :param color:
+            If set, the colour to use, as a list of four float values: Red/green/blue/alpha.
+        :return:
+            None
         """
         if color is not None:
             self.set_color(color=color)
@@ -315,12 +379,16 @@ class GraphicsContext:
         """
         self.context.set_source_rgba(red=color[0], green=color[1], blue=color[2], alpha=color[3])
 
-    def set_line_style(self, dotted: Optional[bool] = None) -> None:
+    def set_line_style(self, dotted: Optional[bool] = None,
+                       dash_pattern: Optional[List[float]] = None) -> None:
         """
         Select the stroke style used to stroke lines.
 
         :param dotted:
             Boolean flag indicating whether lines should be dotted or continuous.
+        :param dash_pattern:
+            Optional list of dash/gap lengths in metres. If provided and dotted
+            is True, this pattern is used instead of the default.
         :return:
             None
         """
@@ -328,7 +396,10 @@ class GraphicsContext:
             self.line_dotted = dotted
 
         if self.line_dotted:
-            self.context.set_dash([1.0 * unit_mm])
+            if dash_pattern:
+                self.context.set_dash(dash_pattern)
+            else:
+                self.context.set_dash([1.0 * unit_mm])
         else:
             self.context.set_dash([])
 
@@ -342,21 +413,26 @@ class GraphicsContext:
         self.font_size = font_size
         self.context.set_font_size(font_size * self.base_font_size)
 
-    def set_font_style(self, italic: Optional[bool] = None, bold: Optional[bool] = None) -> None:
+    def set_font_style(self, family: Optional[str] = None,
+                       italic: Optional[bool] = None, bold: Optional[bool] = None) -> None:
         """
-        Sets the font style (i.e. bold or italic) used.
+        Sets the font style (i.e. family, bold or italic) used.
 
+        :param family:
+            Font family name. None indicates we preserve the existing setting.
         :param italic:
             Boolean flag, indicating whether text should be italic. None indicates we preserve the existing setting.
         :param bold:
             Boolean flag, indicating whether text should be bold. None indicates we preserve the existing setting.
         """
+        if family is not None:
+            self.font_family = family
         if italic is not None:
             self.font_italic = italic
         if bold is not None:
             self.font_bold = bold
 
-        self.context.select_font_face(family="FreeSerif",
+        self.context.select_font_face(family=self.font_family,
                                       slant=cairo.FONT_SLANT_ITALIC if self.font_italic else cairo.FONT_SLANT_NORMAL,
                                       weight=cairo.FONT_WEIGHT_BOLD if self.font_bold else cairo.FONT_SLANT_NORMAL
                                       )
@@ -620,6 +696,28 @@ class GraphicsContext:
 
         x_new = xx * x + xy * y + x0
         y_new = yx * x + yy * y + y0
+
+        The transformation is applied about the point (centre_x, centre_y). It can be undone by calling
+        <matrix_transformation_restore>.
+
+        :param xx:
+            Matrix component xx
+        :param yx:
+            Matrix component yx
+        :param xy:
+            Matrix component xy
+        :param yy:
+            Matrix component yy
+        :param x0:
+            Translation in the x direction
+        :param y0:
+            Translation in the y direction
+        :param centre_x:
+            The x position of the centre of the transformation
+        :param centre_y:
+            The y position of the centre of the transformation
+        :return:
+            None
         """
         self.context.save()
         self.context.translate(tx=centre_x, ty=centre_y)
@@ -637,7 +735,7 @@ class BaseComponent:
     A class wrapping a piece of code used to draw a single component of the model.
     """
 
-    def __init__(self, settings: Optional[dict] = None):
+    def __init__(self, settings: Optional[dict] = None) -> None:
         """
         A class wrapping a piece of code used to draw a single component of the model.
 
@@ -770,11 +868,25 @@ class CompositeComponent(BaseComponent):
     A class allowing multiple components to be overlaid on a single canvas
     """
 
-    def __init__(self, components: Sequence[BaseComponent], settings: Optional[dict] = None):
+    def __init__(self, components: Sequence[BaseComponent], settings: Optional[dict] = None) -> None:
+        """
+        A class allowing multiple components to be overlaid on a single canvas.
+
+        :param components:
+            The list of components to overlay
+        :param settings:
+            Settings used in the rendering of this component
+        """
         self.components: Sequence[BaseComponent] = components
         super(CompositeComponent, self).__init__(settings=settings)
 
     def default_filename(self) -> str:
+        """
+        Report a default filename to use for this item, without file type suffix.
+
+        :return:
+            string
+        """
         return "composite_page"
 
     def bounding_box(self, settings: dict) -> Dict[str, float]:

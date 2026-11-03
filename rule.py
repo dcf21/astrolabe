@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2026 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -95,6 +95,20 @@ class Rule(BaseComponent):
 
         # Subroutine to draw outlines of rule and the alidade
         def rule_draw(context: GraphicsContext, xpos: float, ypos: float, sight: bool) -> None:
+            """
+            Draw the outline of a rule or an alidade.
+
+            :param context:
+                The graphics context to draw onto.
+            :param xpos:
+                The horizontal position of the centre of the rule.
+            :param ypos:
+                The vertical position of the centre of the rule.
+            :param sight:
+                If true, draw tabs which can be folded out to form sights, making this an alidade.
+            :return:
+                None
+            """
             # Draw central hole
             context.begin_path()
             context.circle(centre_x=xpos, centre_y=ypos, radius=r_3)

@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2026 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -25,7 +25,7 @@ from math import pi, sin, tan, cos, acos, atan, atan2, floor
 from typing import Dict
 
 from constants import unit_deg, unit_rev, unit_cm, unit_mm, centre_scaling, r_1, d_12
-from graphics_context import BaseComponent
+from graphics_context import BaseComponent, GraphicsContext
 from numpy import arange
 from settings import fetch_command_line_arguments
 from text import text
@@ -64,7 +64,7 @@ class MotherBack(BaseComponent):
             'y_max': r_outer
         }
 
-    def do_rendering(self, settings, context):
+    def do_rendering(self, settings: dict, context: GraphicsContext) -> None:
         """
         This method is required to actually render this item.
 

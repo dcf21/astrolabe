@@ -4,7 +4,7 @@
 #
 # The python script in this file makes the various parts of a model astrolabe.
 #
-# Copyright (C) 2010-2024 Dominic Ford <https://dcford.org.uk/>
+# Copyright (C) 2010-2026 Dominic Ford <https://dcford.org.uk/>
 #
 # This code is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -30,6 +30,29 @@ from numpy import arange
 from settings import fetch_command_line_arguments
 from text import text
 from themes import themes
+
+
+def theta_unequal_hours(r: float, horizon_centre: float, horizon_radius: float) -> float:
+    """
+    Calculate the azimuthal angle of the lines of the unequal hours. This is where a circle of radius <r>, centred on
+    the centre of the climate, crosses the horizon. The angle is measured around the centre of the climate, from the
+    direction of the centre of the horizon circle.
+
+    :param r:
+        The radius of the circle, centred on the centre of the climate.
+    :param horizon_centre:
+        The distance of the centre of the horizon circle from the centre of the climate.
+    :param horizon_radius:
+        The radius of the horizon circle.
+    :return:
+        The angle, radians.
+    """
+    arg: float = (r ** 2 + horizon_centre ** 2 - horizon_radius ** 2) / (2 * r * horizon_centre)
+    if arg <= -1:
+        return 180 * unit_deg
+    if arg >= 1:
+        return 0 * unit_deg
+    return acos(arg)
 
 
 class Climate(BaseComponent):
@@ -283,24 +306,17 @@ class Climate(BaseComponent):
                      x=0, y=-horizon_centre + horizon_radius,
                      h_align=0, v_align=1, gap=unit_mm, rotation=0)
 
-        # Subroutine for calculating the azimuthal angle of the lines of the unequal hours
+        # Draw the lines of the unequal hours
         if settings['astrolabe_type'] == 'full':
-            # Subroutine for calculating the azimuthal angle of the lines of the unequal hours
-            def theta_unequal_hours(r: float) -> float:
-                arg: float = (r ** 2 + horizon_centre ** 2 - horizon_radius ** 2) / (2 * r * horizon_centre)
-                if arg <= -1:
-                    return 180 * unit_deg
-                if arg >= 1:
-                    return 0 * unit_deg
-                return acos(arg)
-
             # Draw lines of unequal hours in turn
             for h in range(1, 12):
                 for r in arange(max(r_5, horizon_radius - horizon_centre), r_2 + 0.05 * unit_mm, 0.5 * unit_mm):
                     r0: float = r
                     r1: float = min(r + 0.5 * unit_mm, r_2)
-                    theta0: float = theta_unequal_hours(r0)
-                    theta1: float = theta_unequal_hours(r1)
+                    theta0: float = theta_unequal_hours(r=r0, horizon_centre=horizon_centre,
+                                                          horizon_radius=horizon_radius)
+                    theta1: float = theta_unequal_hours(r=r1, horizon_centre=horizon_centre,
+                                                          horizon_radius=horizon_radius)
                     psi0: float = theta0 + (360 * unit_deg - 2 * theta0) / 12 * h
                     psi1: float = theta1 + (360 * unit_deg - 2 * theta1) / 12 * h
                     context.begin_path()
@@ -311,7 +327,7 @@ class Climate(BaseComponent):
             # Label the unequal hours
             context.set_font_size(1.6)
             r: float = r_2 - 4 * unit_mm
-            theta0: float = theta_unequal_hours(r)
+            theta0: float = theta_unequal_hours(r=r, horizon_centre=horizon_centre, horizon_radius=horizon_radius)
             context.set_font_style(bold=False)
             for pos, hr in enumerate(["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]):
                 psi0: float = theta0 + (360 * unit_deg - 2 * theta0) / 12 * (pos + 0.5)
